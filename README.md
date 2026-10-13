@@ -109,3 +109,16 @@ Os logótipos experimentais de Braga e Barcelos são carregados dos URLs Imgur f
 ### ESLint / build
 
 O projeto inclui `eslint` e `eslint-config-next` como dependências de desenvolvimento e uma configuração `.eslintrc.json`. Executa `npm install` antes de `npm run build`.
+
+## Correção do ícone no ecrã principal do iPhone (V9)
+
+Esta versão define o ícone Apple explicitamente no `head` e inclui também `app/apple-icon.png` e `app/icon.png`, seguindo as convenções do Next.js. O ícone Apple é um PNG opaco de 180×180 px e usa um URL novo para evitar cache antiga.
+
+Depois de publicar:
+1. No iPhone, remove o atalho antigo do ecrã principal (manter premido → Remover marcador/apagar app, consoante a versão do iOS).
+2. Abre o endereço diretamente na app **Safari** — não a partir do browser interno de outra app.
+3. Confirma que `https://pentagono-fitur.vercel.app/apple-touch-icon-pentagono-v9.png` mostra o símbolo correto.
+4. No Safari, Partilhar → Adicionar ao ecrã principal → Adicionar.
+5. Se ainda aparecer o ícone anterior, vai a Definições → Apps → Safari → Limpar histórico e dados dos sites (o texto pode variar conforme o iOS), abre novamente o site e repete.
+
+O iOS não atualiza necessariamente o ícone de um atalho já instalado quando um novo deployment é publicado; é necessário remover e voltar a adicionar o atalho.

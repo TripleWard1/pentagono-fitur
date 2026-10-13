@@ -122,3 +122,10 @@ Depois de publicar:
 5. Se ainda aparecer o ícone anterior, vai a Definições → Apps → Safari → Limpar histórico e dados dos sites (o texto pode variar conforme o iOS), abre novamente o site e repete.
 
 O iOS não atualiza necessariamente o ícone de um atalho já instalado quando um novo deployment é publicado; é necessário remover e voltar a adicionar o atalho.
+
+
+## Correção V10 do ícone de instalação iOS
+
+Esta versão declara explicitamente `icons.apple` na API de Metadata do Next.js e usa o ficheiro versionado `/apple-touch-icon-pentagono-v10.png` (180×180) para evitar conflito/cache com ícones de versões anteriores. O manifest usa ícones 192×192 e 512×512 versionados.
+
+Após publicar, confirma que o deployment está associado ao domínio Production; abre diretamente `/apple-touch-icon-pentagono-v10.png`, apaga o atalho antigo do iPhone e volta a adicioná-lo pelo Safari. Não é necessário alterar as variáveis Firebase.

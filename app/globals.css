@@ -3,22 +3,22 @@
 @tailwind utilities;
 
 :root {
-  --ink: #252a2c;
-  --muted: #697174;
-  --quiet: #92999b;
-  --line: #e3e7e7;
-  --line-dark: #d5dada;
-  --page: #f5f7f7;
-  --surface: #ffffff;
-  --surface-subtle: #fafbfb;
+  --ink: #202925;
+  --muted: #5e6963;
+  --quiet: #7f8983;
+  --line: #cbd2ca;
+  --line-dark: #b5beb5;
+  --page: #e4e8e1;
+  --surface: #f5f6f0;
+  --surface-subtle: #edf0e9;
   --selected: #087443;
-  --selected-pale: #e7f2eb;
+  --selected-pale: #dcecdf;
   --radius: 7px;
 }
 
 * { box-sizing: border-box; }
 html { background: var(--page); scroll-behavior: smooth; }
-body { margin: 0; background: var(--page); color: var(--ink); font-family: Verdana, Arial, sans-serif; font-size: 12px; -webkit-font-smoothing: antialiased; }
+body { margin: 0; background: var(--page); color: var(--ink); font-family: Verdana, Geneva, Tahoma, sans-serif; font-size: 12px; -webkit-font-smoothing: antialiased; }
 button, input, textarea, select { font: inherit; }
 button { cursor: pointer; }
 button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visible { outline: 2px solid #087a98; outline-offset: 2px; }
@@ -26,7 +26,7 @@ button:disabled { opacity: .45; cursor: not-allowed; }
 .app-shell { min-height: 100vh; }
 
 /* Compact utility header */
-.topbar { height: 77px; display: flex; align-items: center; justify-content: space-between; gap: 20px; padding: 7px max(20px, calc((100vw - 1380px) / 2)); background: #fff; border-bottom: 1px solid var(--line); }
+.topbar { height: 77px; display: flex; align-items: center; justify-content: space-between; gap: 20px; padding: 7px max(20px, calc((100vw - 1380px) / 2)); background: #eef1eb; border-bottom: 1px solid var(--line); }
 .brand { display: flex; align-items: center; gap: 13px; min-width: 0; color: inherit; text-decoration: none; }
 .brand-logo-wrap { width: 61px; height: 61px; display: flex; align-items: center; justify-content: center; overflow: hidden; flex: 0 0 auto; }
 .brand-logo { display: block; width: 100%; height: 100%; object-fit: contain; }
@@ -289,4 +289,295 @@ button:disabled { opacity: .45; cursor: not-allowed; }
 }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; transition-duration: .01ms !important; }
+}
+
+
+/* ---------- VISUAL REFINEMENT V4: warm neutral surfaces + unmistakable municipality colours ---------- */
+html, body { background: var(--page); }
+body { font-family: Verdana, Geneva, Tahoma, sans-serif; font-size: 12px; }
+button, input, textarea, select { font-family: Verdana, Geneva, Tahoma, sans-serif; }
+
+.topbar { background: #edf0e9; border-bottom-color: #c5cdc4; }
+.content-shell { color: var(--ink); }
+.municipality-picker { border-bottom-color: #c4ccc3; }
+.municipality-option { background: #f1f3ed; border-color: #cbd2ca; }
+.municipality-option:hover { background: color-mix(in srgb, var(--muni) 8%, #f3f5ef); }
+.municipality-option.is-selected {
+  background: color-mix(in srgb, var(--muni) 16%, #f4f6ef);
+  border: 1px solid var(--muni);
+  box-shadow: inset 0 0 0 1px var(--muni), 0 1px 2px rgba(26, 38, 31, .06);
+}
+.municipality-color { width: 11px; height: 11px; border-radius: 3px; box-shadow: 0 0 0 1px rgba(0,0,0,.06); }
+.municipality-res-count { background: rgba(255,255,255,.6); color: #354039; }
+.selected-summary { background: #f0f2ec; border-color: #c6cec5; }
+
+.calendar-card { background: #f4f5ef; border-color: #b8c2b9; box-shadow: 0 2px 5px rgba(32, 41, 37, .045); }
+.calendar-toolbar { background: #f0f2ec; border-bottom-color: #cbd2ca; }
+.month-icon { background: #e1e6de; }
+.day-switcher { background: #e8ece5; border-bottom-color: #cbd2ca; }
+.day-tab { border-right-color: #d1d7cf; }
+.day-tab:hover { background: #e1e7de; }
+.day-tab.active { background: color-mix(in srgb, var(--selected) 13%, #e7ece4); box-shadow: inset 0 -3px var(--selected); }
+.day-count { background: #dce2d9; color: #46534a; }
+.day-tab.active .day-count { background: #f7f8f3; color: var(--selected); }
+.schedule-toolbar { background: #f4f5ef; }
+.counter-bubbles span { background: #d3dad1; }
+.slot-legend { color: #536057; }
+.legend-free { background: #f6f7f1; border-color: #bdc8bd; }
+.legend-own { background: #536057; }
+.legend-other { background: #9ca69f; }
+.legend-blocked { background: repeating-linear-gradient(135deg, #e2e6de, #e2e6de 2px, #f0f2ec 2px, #f0f2ec 4px); border-color: #cbd2ca; }
+.time-slot { background: #f7f8f2; border-color: #c9d1c8; }
+.slot-free:hover { border-color: #839b8b; background: #edf3eb; }
+.slot-top { border-bottom-color: #dce2d9; }
+.slot-top > span { color: #6c7870; }
+.slot-bottom { color: #4e6256; }
+.free-bottom { color: #66736a; }
+
+/* A reservation has three clear cues: tinted surface, full-colour rail and municipality badge. */
+.slot-own, .slot-other {
+  border: 1px solid var(--slot-color);
+  background: color-mix(in srgb, var(--slot-color) 15%, #f5f6f0);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--slot-color) 18%, transparent);
+}
+.slot-own { background: color-mix(in srgb, var(--slot-color) 19%, #f5f6f0); }
+.slot-other { background: color-mix(in srgb, var(--slot-color) 12%, #f5f6f0); }
+.slot-color-edge { width: 5px; border-radius: 0 2px 2px 0; }
+.slot-status {
+  padding: 3px 5px;
+  border-radius: 3px;
+  color: var(--slot-contrast, #fff);
+  background: var(--slot-color);
+  letter-spacing: .1px;
+  line-height: 1.2;
+}
+.slot-status i { width: 5px; height: 5px; background: currentColor; border: 1px solid currentColor; }
+.slot-other .slot-status { color: var(--slot-contrast, #fff); background: var(--slot-color); }
+.slot-own .slot-top, .slot-other .slot-top { border-bottom-color: color-mix(in srgb, var(--slot-color) 28%, transparent); }
+.slot-own .slot-action-name, .slot-other .slot-action-name { color: #243029; }
+.slot-own .slot-bottom { color: var(--slot-color); font-weight: 700; }
+.slot-other .slot-bottom { color: #4c5850; }
+.slot-blocked { background: repeating-linear-gradient(135deg, #e9ece6, #e9ece6 5px, #e1e5de 5px, #e1e5de 10px); border-color: #d1d7cf; }
+.slot-blocked .slot-top { border-bottom-color: #d7ddd5; }
+.calendar-footer { background: #e9ede6; border-top-color: #cbd2ca; }
+.avail-dot { background: #7fa58c; }
+.reserved-dot { background: #435d4c; }
+.blocked-dot { background: #9ea79f; }
+
+.reservations-section { background: #f3f5ee; border-color: #bac4bb; }
+.reservations-toggle { background: #f0f2eb; }
+.reservations-toggle:hover, .reservations-toggle.open { background: #e7ebe3; }
+.list-toolbar { background: #e9ede6; border-bottom-color: #cbd2ca; }
+.list-filters { background: #dce3da; }
+.list-filters button.filter-active { background: #f6f7f1; }
+.search-field, .export-button { background: #f6f7f1; border-color: #bdc7bd; }
+.search-field input { background: transparent; }
+.reservation-table th { background: #e9ede6; border-bottom-color: #cbd2ca; }
+.reservation-table tbody tr:hover { background: #e9f0e7; }
+.row-actions button { background: #f3f5ee; border-color: #cbd2ca; }
+.list-end-note { background: #e9ede6; border-top-color: #cbd2ca; }
+.empty-list { background: #f3f5ee; }
+
+.booking-modal { background: #f5f6f0; border-color: #c5cdc4; }
+.modal-close, .button-secondary { background: #edf0e9; border-color: #c5cdc4; }
+.modal-close:hover, .button-secondary:hover { background: #e3e8df; }
+.modal-context, .modal-warning { background: #e9ede6; border-color: #d0d7ce; }
+.booking-modal input, .booking-modal textarea { background: #fafbf6; border-color: #c5cec4; }
+.toast { background: #f5f6f0; border-color: #c2ccc2; }
+
+/* Keep the compact, readable layout and make municipality colours survive mobile stacking. */
+@media (max-width: 700px) {
+  .topbar { background: #edf0e9; }
+  .time-slot { min-height: 84px; }
+  .slot-own, .slot-other { border-width: 1px; }
+  .slot-color-edge { width: 5px; }
+}
+
+
+/* ---------- V5: white-first interface, with the five- municipality identity woven into the page ---------- */
+:root {
+  --page: #ffffff;
+  --surface: #ffffff;
+  --surface-subtle: #f7f8f6;
+  --line: #e0e4df;
+  --line-dark: #cbd2cc;
+}
+html, body { background-color: #fff; }
+body {
+  background-color: #fff;
+  background-image:
+    linear-gradient(90deg, rgba(8,116,67,.035) 0 1px, transparent 1px),
+    linear-gradient(90deg, rgba(242,180,0,.03) 0 1px, transparent 1px),
+    linear-gradient(90deg, rgba(223,20,39,.025) 0 1px, transparent 1px),
+    linear-gradient(90deg, rgba(8,122,152,.03) 0 1px, transparent 1px),
+    linear-gradient(90deg, rgba(85,89,92,.025) 0 1px, transparent 1px);
+  background-size: 125px 100%, 125px 100%, 125px 100%, 125px 100%, 125px 100%;
+  background-position: 0 0, 25px 0, 50px 0, 75px 0, 100px 0;
+  font-family: Verdana, Geneva, Tahoma, sans-serif;
+}
+/* Side lines act as a quiet, full-height reference to the five-part mark. */
+body::before {
+  content: ""; position: fixed; inset: 0; z-index: 0; pointer-events: none; opacity: .72;
+  background:
+    linear-gradient(#087443,#087443) left top / 4px 20% no-repeat,
+    linear-gradient(#f2b400,#f2b400) left 20% / 4px 20% no-repeat,
+    linear-gradient(#df1427,#df1427) left 40% / 4px 20% no-repeat,
+    linear-gradient(#087a98,#087a98) left 60% / 4px 20% no-repeat,
+    linear-gradient(#55595c,#55595c) left 80% / 4px 20% no-repeat,
+    linear-gradient(#087443,#087443) right top / 4px 20% no-repeat,
+    linear-gradient(#f2b400,#f2b400) right 20% / 4px 20% no-repeat,
+    linear-gradient(#df1427,#df1427) right 40% / 4px 20% no-repeat,
+    linear-gradient(#087a98,#087a98) right 60% / 4px 20% no-repeat,
+    linear-gradient(#55595c,#55595c) right 80% / 4px 20% no-repeat;
+}
+.app-shell { position: relative; z-index: 1; min-height: 100vh; background: transparent; }
+/* Slim five-colour ribbon echoes the Pentágono symbol without overpowering the page. */
+.topbar {
+  position: relative;
+  height: 82px;
+  background: rgba(255,255,255,.97);
+  border-bottom: 1px solid #dfe4df;
+  padding-top: 10px;
+}
+.topbar::before {
+  content: "";
+  position: absolute;
+  z-index: 2;
+  top: 0; left: 0; right: 0;
+  height: 5px;
+  background: linear-gradient(90deg,
+    #087443 0%, #087443 20%,
+    #f2b400 20%, #f2b400 40%,
+    #df1427 40%, #df1427 60%,
+    #087a98 60%, #087a98 80%,
+    #55595c 80%, #55595c 100%);
+}
+.content-shell { width: min(1540px, 100%); padding-top: 22px; }
+.municipality-picker {
+  position: relative;
+  padding-bottom: 19px;
+  border-bottom: 0;
+}
+.municipality-picker::after {
+  content: ""; position: absolute; bottom: 0; left: 0; right: 0; height: 3px;
+  background: linear-gradient(90deg,
+    #087443 0%, #087443 20%,
+    #f2b400 20%, #f2b400 40%,
+    #df1427 40%, #df1427 60%,
+    #087a98 60%, #087a98 80%,
+    #55595c 80%, #55595c 100%);
+  opacity: .9;
+}
+.picker-title { margin-bottom: 11px; }
+.municipality-options { gap: 9px; }
+.municipality-option {
+  position: relative;
+  min-height: 47px;
+  padding: 10px 11px 9px;
+  background: #fff;
+  border: 1px solid #d8ded8;
+  border-top: 3px solid var(--muni);
+  border-radius: 4px;
+  box-shadow: 0 1px 2px rgba(20,36,27,.025);
+}
+.municipality-option:hover { background: color-mix(in srgb, var(--muni) 7%, white); }
+.municipality-option.is-selected {
+  background: color-mix(in srgb, var(--muni) 13%, white);
+  border-color: var(--muni);
+  border-top-color: var(--muni);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--muni) 18%, transparent), 0 2px 5px rgba(20,36,27,.07);
+}
+.municipality-color { width: 12px; height: 12px; }
+.municipality-res-count { color: var(--muni); background: color-mix(in srgb, var(--muni) 9%, white); border: 1px solid color-mix(in srgb, var(--muni) 18%, white); }
+.page-heading {
+  position: relative;
+  margin-top: 4px;
+  padding: 17px 0 16px 13px;
+  border-left: 4px solid var(--selected);
+  background: linear-gradient(90deg, color-mix(in srgb, var(--selected) 5%, white) 0%, #fff 42%);
+}
+.page-heading h1 { font-size: 21px; letter-spacing: -.25px; }
+.calendar-card {
+  position: relative;
+  margin-top: 2px;
+  background: #fff;
+  border: 1px solid #cfd7d0;
+  border-radius: 5px;
+  box-shadow: 0 3px 10px rgba(26,47,34,.055);
+}
+.calendar-card::before {
+  content: ""; display: block; height: 4px;
+  background: linear-gradient(90deg,
+    #087443 0%, #087443 20%,
+    #f2b400 20%, #f2b400 40%,
+    #df1427 40%, #df1427 60%,
+    #087a98 60%, #087a98 80%,
+    #55595c 80%, #55595c 100%);
+}
+.calendar-toolbar { background: #fbfcfa; }
+.day-switcher { background: #f7f9f6; }
+.day-tab { min-height: 69px; }
+.day-tab.active { background: color-mix(in srgb, var(--selected) 12%, white); box-shadow: inset 0 -4px var(--selected); }
+.day-tab.active .day-count { background: var(--selected); color: var(--selected-contrast, #fff); }
+.schedule-toolbar { background: #fff; }
+.slot-legend { padding-top: 2px; }
+.time-grid { gap: 8px; padding: 2px 17px 17px; }
+.time-slot { min-height: 108px; background: #fff; border-color: #d9e0da; border-radius: 4px; padding: 9px 9px 8px 11px; }
+.slot-free:hover { border-color: #92a99b; background: #f7fbf7; }
+.slot-top { border-bottom-color: #edf0ed; }
+/* Reservations use the town's own hue, pale but visible, with a solid identity rail. */
+.slot-own, .slot-other {
+  border: 1px solid var(--slot-color);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--slot-color) 16%, transparent);
+}
+.slot-own { background: color-mix(in srgb, var(--slot-color) 31%, white); }
+.slot-other { background: color-mix(in srgb, var(--slot-color) 21%, white); }
+.slot-color-edge { width: 7px; border-radius: 0; }
+.slot-status {
+  padding: 3px 6px;
+  border-radius: 2px;
+  box-shadow: 0 1px 0 rgba(0,0,0,.06);
+  letter-spacing: .15px;
+}
+.slot-own .slot-action-name, .slot-other .slot-action-name { color: #1f2923; }
+.slot-own .slot-bottom { color: var(--slot-color); }
+.slot-other .slot-bottom { color: #38453d; }
+.slot-blocked { background: repeating-linear-gradient(135deg, #f5f6f3, #f5f6f3 6px, #e9ede8 6px, #e9ede8 12px); border-color: #dbe0da; }
+.calendar-footer { background: #f7f9f6; }
+.reservations-section { background: #fff; border-color: #cfd7d0; box-shadow: 0 2px 8px rgba(26,47,34,.035); }
+.reservations-toggle { background: #f9fbf8; border-bottom: 1px solid #e0e5df; }
+.reservations-toggle:hover, .reservations-toggle.open { background: color-mix(in srgb, var(--selected) 5%, white); }
+.list-toolbar { background: #f6f8f5; }
+.reservation-table th { background: #f2f5f1; }
+.reservation-table tbody tr:hover { background: #f5f9f4; }
+.app-footer { position: relative; margin-top: 10px; padding-top: 18px; }
+.app-footer::before {
+  content: ""; position: absolute; top: 0; left: 0; right: 0; height: 2px;
+  background: linear-gradient(90deg, #087443 0 20%, #f2b400 20% 40%, #df1427 40% 60%, #087a98 60% 80%, #55595c 80% 100%);
+  opacity: .8;
+}
+@media (min-width: 1500px) {
+  .time-grid { grid-template-columns: repeat(9, minmax(0, 1fr)); }
+  .time-slot { min-height: 116px; padding-left: 12px; padding-right: 12px; }
+}
+@media (max-width: 700px) {
+  body { background-size: 100px 100%, 100px 100%, 100px 100%, 100px 100%, 100px 100%; background-position: 0 0, 20px 0, 40px 0, 60px 0, 80px 0; }
+  body::before { opacity: .48; }
+  .topbar { height: 72px; padding-top: 8px; }
+  .content-shell { padding: 13px 12px 0; }
+  .municipality-picker { padding-bottom: 14px; }
+  .municipality-option { min-height: 40px; padding: 7px 9px 6px; }
+  .page-heading { margin-top: 2px; padding: 12px 0 12px 10px; }
+  .page-heading h1 { font-size: 18px; }
+  .time-grid { gap: 6px; padding: 2px 9px 11px; }
+  .time-slot { min-height: 91px; padding: 7px 7px 7px 10px; }
+  .slot-color-edge { width: 6px; }
+  .calendar-card::before { height: 4px; }
+  .municipality-picker::after { height: 3px; }
+  .app-footer::before { height: 3px; }
+}
+@media (max-width: 360px) {
+  .content-shell { padding-left: 8px; padding-right: 8px; }
+  .municipality-options { gap: 5px; }
+  .municipality-option-name { max-width: 110px; }
 }

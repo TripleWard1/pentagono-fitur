@@ -25,14 +25,15 @@ type MunicipalityInfo = {
   short: string;
   color: string;
   pale: string;
+  contrast: string;
 };
 
 const MUNICIPALITIES: MunicipalityInfo[] = [
-  { name: "Braga", short: "BRA", color: "#087443", pale: "#e7f2eb" },
-  { name: "Guimarães", short: "GUI", color: "#f2b400", pale: "#fff6d8" },
-  { name: "Vila Nova de Famalicão", short: "FAM", color: "#df1427", pale: "#fdebed" },
-  { name: "Viana do Castelo", short: "VIA", color: "#087a98", pale: "#e8f4f7" },
-  { name: "Barcelos", short: "BAR", color: "#55595c", pale: "#eff0f0" },
+  { name: "Braga", short: "BRA", color: "#087443", pale: "#d7eadc", contrast: "#ffffff" },
+  { name: "Guimarães", short: "GUI", color: "#f2b400", pale: "#ffefad", contrast: "#352800" },
+  { name: "Vila Nova de Famalicão", short: "FAM", color: "#df1427", pale: "#fbdadd", contrast: "#ffffff" },
+  { name: "Viana do Castelo", short: "VIA", color: "#087a98", pale: "#d7edf2", contrast: "#ffffff" },
+  { name: "Barcelos", short: "BAR", color: "#55595c", pale: "#e0e3e3", contrast: "#ffffff" },
 ];
 const DAYS = [
   { dow: "TER", date: "19", full: "Terça-feira, 19 de janeiro", short: "Ter. 19" },
@@ -278,7 +279,7 @@ export default function Home() {
               const meta = reservation ? getMunicipality(reservation.municipality) : null;
               const slotClass = reservation ? (own ? "slot-own" : "slot-other") : (blocked ? "slot-blocked" : "slot-free");
               const label = reservation ? `${time} a ${getEndTime(time)}. ${reservation.actionName}, ${reservation.municipality}. ${own ? "Editar ação" : "Ocupado"}` : blocked ? `${time} a ${getEndTime(time)}. Intervalo de segurança.` : `${time} a ${getEndTime(time)}. Reservar horário.`;
-              return <button key={time} type="button" className={`time-slot ${slotClass}`} style={meta ? { "--slot-color": meta.color, "--slot-pale": meta.pale } as React.CSSProperties : {}} aria-label={label} onClick={() => reservation ? (own ? openEdit(reservation) : setToast(`Este horário está reservado por ${reservation.municipality}.`)) : blocked ? setToast("Intervalo de segurança: este horário está bloqueado.") : openNew(time)}>
+              return <button key={time} type="button" className={`time-slot ${slotClass}`} style={meta ? { "--slot-color": meta.color, "--slot-pale": meta.pale, "--slot-contrast": meta.contrast } as React.CSSProperties : {}} aria-label={label} onClick={() => reservation ? (own ? openEdit(reservation) : setToast(`Este horário está reservado por ${reservation.municipality}.`)) : blocked ? setToast("Intervalo de segurança: este horário está bloqueado.") : openNew(time)}>
                 <span className="slot-top"><strong>{time}</strong><span>{getEndTime(time)}</span></span>
                 {reservation ? <>
                   <span className="slot-status"><i />{own ? "A TUA AÇÃO" : meta?.short}</span>

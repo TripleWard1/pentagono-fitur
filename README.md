@@ -1,4 +1,4 @@
-# Pentágono Urbano — FITUR 2027
+# Pentágono Urbano - FITUR 2027
 
 Aplicação Next.js para coordenar o calendário de ações dos cinco municípios do Pentágono Urbano na FITUR 2027.
 
@@ -67,10 +67,10 @@ No projeto Firebase, abre **Firestore Database → Rules**, substitui as regras 
 
 O modelo de dados é criado automaticamente pela app à medida que as reservas são feitas; não precisas de criar coleções manualmente. A app usa:
 
-- `reservations` — os dados de cada ação;
-- `slotLocksV2` — bloqueios transacionais do próprio horário e do bloco seguinte para arrumação;
-- `system/slotLockSchema` — versão do esquema de bloqueios, com migração automática dos agendamentos existentes. A primeira abertura depois desta atualização migra os bloqueios dentro de uma transação; mantém a página aberta até surgir “Sincronizado”.
-- `dailyCounters` — contagem transacional para o limite diário por município.
+- `reservations` - os dados de cada ação;
+- `slotLocksV2` - bloqueios transacionais do próprio horário e do bloco seguinte para arrumação;
+- `system/slotLockSchema` - versão do esquema de bloqueios, com migração automática dos agendamentos existentes. A primeira abertura depois desta atualização migra os bloqueios dentro de uma transação; mantém a página aberta até surgir “Sincronizado”.
+- `dailyCounters` - contagem transacional para o limite diário por município.
 
 ### 5. Testar localmente
 
@@ -116,7 +116,7 @@ Esta versão define o ícone Apple explicitamente no `head` e inclui também `ap
 
 Depois de publicar:
 1. No iPhone, remove o atalho antigo do ecrã principal (manter premido → Remover marcador/apagar app, consoante a versão do iOS).
-2. Abre o endereço diretamente na app **Safari** — não a partir do browser interno de outra app.
+2. Abre o endereço diretamente na app **Safari** - não a partir do browser interno de outra app.
 3. Confirma que `https://pentagono-fitur.vercel.app/apple-touch-icon-pentagono-v9.png` mostra o símbolo correto.
 4. No Safari, Partilhar → Adicionar ao ecrã principal → Adicionar.
 5. Se ainda aparecer o ícone anterior, vai a Definições → Apps → Safari → Limpar histórico e dados dos sites (o texto pode variar conforme o iOS), abre novamente o site e repete.

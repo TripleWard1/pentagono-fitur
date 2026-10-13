@@ -93,7 +93,7 @@ export default function StandScreen() {
     <section className="screen-main">
       <div className="screen-kicker"><Tv2 size={16} /> PROGRAMAÇÃO DO STAND</div>
       {currentPage && currentDay ? <>
-        <div className="screen-title-row"><div><p>{currentDay.dow} · {currentDay.date} DE JANEIRO</p><h1>Hoje no Pentágono</h1></div><div className="screen-date-stamp"><CalendarDays size={22} /><span>19—24<strong>JAN 2027</strong></span></div></div>
+        <div className="screen-title-row"><div><p>{currentDay.dow} · {currentDay.date} DE JANEIRO</p><h1>Hoje no Pentágono</h1></div><div className="screen-date-stamp"><CalendarDays size={22} /><span>19-24<strong>JAN 2027</strong></span></div></div>
         <div className="screen-activity-heading"><strong>Agenda de atividades</strong><span>{currentPage.items.length} {currentPage.items.length === 1 ? "atividade" : "atividades"}{currentPage.parts > 1 ? ` · Página ${currentPage.part} de ${currentPage.parts}` : ""}</span></div>
         <div className="screen-activities" style={{ gridTemplateColumns: currentPage.items.length <= 2 ? "minmax(0, 1fr)" : "repeat(2, minmax(0, 1fr))", gridTemplateRows: `repeat(${Math.ceil(currentPage.items.length / (currentPage.items.length <= 2 ? 1 : 2))}, minmax(0, 1fr))` }}>
           {currentPage.items.map((item) => {

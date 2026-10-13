@@ -1,7 +1,7 @@
 import { getApp, getApps, initializeApp } from 'firebase/app';
 import { getAuth, onAuthStateChanged, signInAnonymously } from 'firebase/auth';
 import {
-  collection, doc, getFirestore, onSnapshot, runTransaction,
+  collection, doc, getDoc, getDocs, getFirestore, onSnapshot, runTransaction,
   updateDoc, type Unsubscribe,
 } from 'firebase/firestore';
 
@@ -93,31 +93,39 @@ function slotsToLock(timeSlot: string) {
 export async function ensureSlotLockSchema() {
   if (!db) throw new Error('Firebase não está configurado.');
   const schemaRef = lockSchemaRef();
+
+  // Firestore client transactions read document references, not collection references.
+  // Read the reservations as a query before starting the transaction; writes below remain
+  // atomic with the schema marker so another browser cannot start using a partial migration.
+  const currentSchema = await getDoc(schemaRef);
+  if (currentSchema.exists() && currentSchema.data().version === LOCK_SCHEMA_VERSION) return;
+
+  const existingReservations = await getDocs(collection(db, 'reservations'));
+  const lockDocs = new Map<string, { dayIndex: number; timeSlot: string; reservationId: string; kind: string; municipality: Municipality }>();
+  for (const snap of existingReservations.docs) {
+    const reservation = { ...snap.data(), id: snap.id } as Reservation;
+    if (!Number.isInteger(reservation.dayIndex) || !TIMES.includes(reservation.timeSlot)) continue;
+    for (const time of slotsToLock(reservation.timeSlot)) {
+      const id = lockId(reservation.dayIndex, time);
+      const previous = lockDocs.get(id);
+      if (previous && previous.reservationId !== reservation.id) {
+        throw new Error(`Não foi possível migrar os bloqueios: existem reservas incompatíveis perto das ${time}. Revê o calendário antes de continuar.`);
+      }
+      lockDocs.set(id, {
+        dayIndex: reservation.dayIndex,
+        timeSlot: time,
+        reservationId: reservation.id,
+        kind: time === reservation.timeSlot ? 'reserved' : 'buffer',
+        municipality: reservation.municipality,
+      });
+    }
+  }
+
   await runTransaction(db, async (transaction) => {
     const schemaSnapshot = await transaction.get(schemaRef);
+    // Another browser may have completed the migration while this browser queried reservations.
     if (schemaSnapshot.exists() && schemaSnapshot.data().version === LOCK_SCHEMA_VERSION) return;
 
-    // Firestore transaction reads are all performed before any writes.
-    const existingReservations = await transaction.get(collection(db!, 'reservations'));
-    const lockDocs = new Map<string, { dayIndex: number; timeSlot: string; reservationId: string; kind: string; municipality: Municipality }>();
-    for (const snap of existingReservations.docs) {
-      const reservation = { ...snap.data(), id: snap.id } as Reservation;
-      if (!Number.isInteger(reservation.dayIndex) || !TIMES.includes(reservation.timeSlot)) continue;
-      for (const time of slotsToLock(reservation.timeSlot)) {
-        const id = lockId(reservation.dayIndex, time);
-        const previous = lockDocs.get(id);
-        if (previous && previous.reservationId !== reservation.id) {
-          throw new Error(`Não foi possível migrar os bloqueios: existem reservas incompatíveis perto das ${time}. Revê o calendário antes de continuar.`);
-        }
-        lockDocs.set(id, {
-          dayIndex: reservation.dayIndex,
-          timeSlot: time,
-          reservationId: reservation.id,
-          kind: time === reservation.timeSlot ? 'reserved' : 'buffer',
-          municipality: reservation.municipality,
-        });
-      }
-    }
     for (const [id, lock] of lockDocs) {
       transaction.set(doc(db!, 'slotLocksV2', id), lock);
     }

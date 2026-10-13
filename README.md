@@ -104,3 +104,8 @@ Antes de divulgar o endereço publicamente ou utilizar o calendário como regist
 ## Logótipos dos municípios
 
 Os logótipos experimentais de Braga e Barcelos são carregados dos URLs Imgur fornecidos. Os três restantes municípios continuam a usar o quadrado de cor, até serem fornecidos os respetivos logótipos.
+
+
+### ESLint / build
+
+O projeto inclui `eslint` e `eslint-config-next` como dependências de desenvolvimento e uma configuração `.eslintrc.json`. Executa `npm install` antes de `npm run build`.

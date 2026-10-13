@@ -126,9 +126,11 @@ export async function ensureSlotLockSchema() {
     // Another browser may have completed the migration while this browser queried reservations.
     if (schemaSnapshot.exists() && schemaSnapshot.data().version === LOCK_SCHEMA_VERSION) return;
 
-    for (const [id, lock] of lockDocs) {
+    // Use Map.forEach instead of iterating Map entries so this compiles even when
+    // the project's TypeScript target is ES5 (as configured by Next.js).
+    lockDocs.forEach((lock, id) => {
       transaction.set(doc(db!, 'slotLocksV2', id), lock);
-    }
+    });
     transaction.set(schemaRef, {
       version: LOCK_SCHEMA_VERSION,
       migratedAt: Date.now(),

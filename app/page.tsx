@@ -3,22 +3,19 @@
 import { useEffect, useMemo, useState } from "react";
 import type { FormEvent } from "react";
 import {
+  firebaseConfigured, ensureAnonymousSignIn, subscribeReservations,
+  createReservationCloud, updateReservationCloud, deleteReservationCloud,
+  LOCAL_STORAGE_KEY,
+} from "@/lib/firebase";
+import type { Reservation as FirebaseReservation } from "@/lib/firebase";
+import {
   CalendarDays, ChevronDown, ChevronRight, CheckCircle2,
   Clock3, Download, Edit3, FileText, Info, LockKeyhole,
   Plus, Search, Trash2, X
 } from "lucide-react";
 
-type Municipality = "Braga" | "Guimarães" | "Vila Nova de Famalicão" | "Viana do Castelo" | "Barcelos";
-type Reservation = {
-  id: string;
-  municipality: Municipality;
-  dayIndex: number;
-  timeSlot: string;
-  actionName: string;
-  responsible: string;
-  contact: string;
-  notes: string;
-};
+type Municipality = FirebaseReservation["municipality"];
+type Reservation = FirebaseReservation;
 
 type MunicipalityInfo = {
   name: Municipality;
@@ -26,14 +23,15 @@ type MunicipalityInfo = {
   color: string;
   pale: string;
   contrast: string;
+  logo?: string;
 };
 
 const MUNICIPALITIES: MunicipalityInfo[] = [
-  { name: "Braga", short: "BRA", color: "#087443", pale: "#d7eadc", contrast: "#ffffff" },
-  { name: "Guimarães", short: "GUI", color: "#f2b400", pale: "#ffefad", contrast: "#352800" },
-  { name: "Vila Nova de Famalicão", short: "FAM", color: "#df1427", pale: "#fbdadd", contrast: "#ffffff" },
-  { name: "Viana do Castelo", short: "VIA", color: "#087a98", pale: "#d7edf2", contrast: "#ffffff" },
-  { name: "Barcelos", short: "BAR", color: "#55595c", pale: "#e0e3e3", contrast: "#ffffff" },
+  { name: "Braga", short: "Braga", color: "#087443", pale: "#d7eadc", contrast: "#ffffff", logo: "https://i.imgur.com/2MEyi4w.png" },
+  { name: "Guimarães", short: "Guimarães", color: "#f2b400", pale: "#ffefad", contrast: "#352800" },
+  { name: "Vila Nova de Famalicão", short: "Vila Nova de Famalicão", color: "#df1427", pale: "#fbdadd", contrast: "#ffffff" },
+  { name: "Viana do Castelo", short: "Viana do Castelo", color: "#087a98", pale: "#d7edf2", contrast: "#ffffff" },
+  { name: "Barcelos", short: "Barcelos", color: "#55595c", pale: "#e0e3e3", contrast: "#ffffff", logo: "https://i.imgur.com/e5ntTlW.png" },
 ];
 const DAYS = [
   { dow: "TER", date: "19", full: "Terça-feira, 19 de janeiro", short: "Ter. 19" },
@@ -44,7 +42,6 @@ const DAYS = [
   { dow: "DOM", date: "24", full: "Domingo, 24 de janeiro", short: "Dom. 24" },
 ];
 const TIMES = Array.from({ length: 18 }, (_, i) => `${String(10 + Math.floor(i / 2)).padStart(2, "0")}:${i % 2 ? "30" : "00"}`);
-const STORAGE_KEY = "pentagono-fitur-2027-reservations-v3";
 const logoUrl = "/pentagono-logo-original.png";
 
 function getEndTime(start: string) {
@@ -65,6 +62,10 @@ export default function Home() {
   const [day, setDay] = useState(0);
   const [reservations, setReservations] = useState<Reservation[]>([]);
   const [hydrated, setHydrated] = useState(false);
+  const [syncStatus, setSyncStatus] = useState<"local" | "connecting" | "online" | "error">(firebaseConfigured ? "connecting" : "local");
+  const [saving, setSaving] = useState(false);
+  const [localMigrationItems, setLocalMigrationItems] = useState<Reservation[]>([]);
+  const [importingLocal, setImportingLocal] = useState(false);
   const [modalTime, setModalTime] = useState<string | null>(null);
   const [editing, setEditing] = useState<Reservation | null>(null);
   const [actionName, setActionName] = useState("");
@@ -77,23 +78,60 @@ export default function Home() {
   const [showReservations, setShowReservations] = useState(false);
 
   useEffect(() => {
-    try {
-      // Importa também marcações da versão anterior se existirem neste navegador.
-      const saved = localStorage.getItem(STORAGE_KEY)
-        || localStorage.getItem("pentagono-fitur-2027-reservations-v2");
-      if (saved) {
-        const parsed = JSON.parse(saved) as Reservation[];
-        if (Array.isArray(parsed)) setReservations(parsed);
-      }
-    } catch {
-      // Ignore invalid or unavailable local browser storage.
+    if (!firebaseConfigured) {
+      try {
+        const saved = localStorage.getItem(LOCAL_STORAGE_KEY)
+          || localStorage.getItem("pentagono-fitur-2027-reservations-v2");
+        if (saved) {
+          const parsed = JSON.parse(saved) as Reservation[];
+          if (Array.isArray(parsed)) setReservations(parsed);
+        }
+      } catch { /* O armazenamento local pode estar indisponível. */ }
+      setSyncStatus("local");
+      setHydrated(true);
+      return;
     }
-    setHydrated(true);
+
+    try {
+      const localSaved = localStorage.getItem(LOCAL_STORAGE_KEY)
+        || localStorage.getItem("pentagono-fitur-2027-reservations-v2");
+      if (localSaved) {
+        const parsed = JSON.parse(localSaved) as Reservation[];
+        if (Array.isArray(parsed)) setLocalMigrationItems(parsed);
+      }
+    } catch { /* Ignora dados locais inválidos. */ }
+
+    let cancelled = false;
+    let unsubscribe: (() => void) | undefined;
+    setSyncStatus("connecting");
+    ensureAnonymousSignIn().then(() => {
+      if (cancelled) return;
+      unsubscribe = subscribeReservations((items) => {
+        setReservations(items);
+        const cloudIds = new Set(items.map((item) => item.id));
+        setLocalMigrationItems((previous) => previous.filter((item) => !cloudIds.has(item.id)));
+        setSyncStatus("online");
+        setHydrated(true);
+      }, (error) => {
+        console.error("Erro de sincronização Firebase", error);
+        setSyncStatus("error");
+        setHydrated(true);
+        setToast("Não foi possível sincronizar com a Firebase. Confirma a configuração e as regras do Firestore.");
+      });
+    }).catch((error) => {
+      console.error("Erro de autenticação Firebase", error);
+      if (!cancelled) {
+        setSyncStatus("error");
+        setHydrated(true);
+        setToast("A ligação Firebase falhou. Ativa a autenticação anónima na consola Firebase.");
+      }
+    });
+    return () => { cancelled = true; unsubscribe?.(); };
   }, []);
 
   useEffect(() => {
-    if (hydrated) {
-      try { localStorage.setItem(STORAGE_KEY, JSON.stringify(reservations)); } catch { /* Storage may be disabled. */ }
+    if (hydrated && !firebaseConfigured) {
+      try { localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(reservations)); } catch { /* O armazenamento local pode estar indisponível. */ }
     }
   }, [reservations, hydrated]);
 
@@ -148,51 +186,102 @@ export default function Home() {
     setNotes(reservation.notes || "");
   }
 
-  function saveReservation(event: FormEvent<HTMLFormElement>) {
+  async function saveReservation(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (!modalTime || !actionName.trim()) return;
 
-    if (editing) {
-      setReservations((previous) => previous.map((r) => r.id === editing.id
-        ? { ...r, actionName: actionName.trim(), responsible: responsible.trim(), contact: contact.trim(), notes: notes.trim() }
-        : r));
-      setToast("Alterações guardadas.");
-    } else {
-      const currentDayBookings = reservations.filter((r) => r.dayIndex === day);
-      const municipalityBookings = currentDayBookings.filter((r) => r.municipality === municipality);
-      const atSlot = currentDayBookings.some((r) => r.timeSlot === modalTime);
-      const timeIndex = TIMES.indexOf(modalTime);
-      const neighbourBusy = (timeIndex > 0 && currentDayBookings.some((r) => r.timeSlot === TIMES[timeIndex - 1]))
-        || (timeIndex < TIMES.length - 1 && currentDayBookings.some((r) => r.timeSlot === TIMES[timeIndex + 1]));
-
-      if (municipalityBookings.length >= 3) {
-        setToast("Limite diário atingido: máximo de 3 horários por município.");
-        setModalTime(null);
-        return;
-      }
-      if (atSlot || neighbourBusy) {
-        setToast("Este horário já não está disponível. Escolhe outro bloco.");
-        setModalTime(null);
-        return;
-      }
-      setReservations((previous) => [...previous, {
-        id: createId(), municipality, dayIndex: day, timeSlot: modalTime,
-        actionName: actionName.trim(), responsible: responsible.trim(), contact: contact.trim(), notes: notes.trim(),
-      }]);
-      setToast("Horário reservado com sucesso.");
+    if (firebaseConfigured && syncStatus !== "online") {
+      setToast("A sincronização ainda não está pronta. Confirma a ligação à Firebase antes de reservar.");
+      return;
     }
-    setModalTime(null);
-    setEditing(null);
+
+    if (editing) {
+      const updatedFields = { actionName: actionName.trim(), responsible: responsible.trim(), contact: contact.trim(), notes: notes.trim() };
+      setSaving(true);
+      try {
+        if (firebaseConfigured) await updateReservationCloud(editing.id, updatedFields);
+        else setReservations((previous) => previous.map((r) => r.id === editing.id ? { ...r, ...updatedFields } : r));
+        setToast("Alterações guardadas.");
+        setModalTime(null);
+        setEditing(null);
+      } catch (error) {
+        setToast(error instanceof Error ? error.message : "Não foi possível atualizar a reserva.");
+      } finally { setSaving(false); }
+      return;
+    }
+
+    const currentDayBookings = reservations.filter((r) => r.dayIndex === day);
+    const municipalityBookings = currentDayBookings.filter((r) => r.municipality === municipality);
+    const atSlot = currentDayBookings.some((r) => r.timeSlot === modalTime);
+    const timeIndex = TIMES.indexOf(modalTime);
+    const neighbourBusy = (timeIndex > 0 && currentDayBookings.some((r) => r.timeSlot === TIMES[timeIndex - 1]))
+      || (timeIndex < TIMES.length - 1 && currentDayBookings.some((r) => r.timeSlot === TIMES[timeIndex + 1]));
+
+    if (municipalityBookings.length >= 3) {
+      setToast("Limite diário atingido: máximo de 3 horários por município.");
+      setModalTime(null);
+      return;
+    }
+    if (atSlot || neighbourBusy) {
+      setToast("Este horário já não está disponível. Escolhe outro bloco.");
+      setModalTime(null);
+      return;
+    }
+
+    const newReservation: Reservation = {
+      id: createId(), municipality, dayIndex: day, timeSlot: modalTime,
+      actionName: actionName.trim(), responsible: responsible.trim(), contact: contact.trim(), notes: notes.trim(),
+    };
+    setSaving(true);
+    try {
+      if (firebaseConfigured) await createReservationCloud(newReservation);
+      else setReservations((previous) => [...previous, newReservation]);
+      setToast("Horário reservado com sucesso.");
+      setModalTime(null);
+      setEditing(null);
+    } catch (error) {
+      setToast(error instanceof Error ? error.message : "Não foi possível guardar a reserva.");
+    } finally { setSaving(false); }
   }
 
-  function removeReservation(reservation: Reservation) {
+  async function importLocalReservations() {
+    if (syncStatus !== "online" || importingLocal || localMigrationItems.length === 0) return;
+    setImportingLocal(true);
+    let imported = 0;
+    const succeeded: string[] = [];
+    const failed: string[] = [];
+    for (const reservation of localMigrationItems) {
+      try {
+        await createReservationCloud(reservation);
+        imported += 1;
+        succeeded.push(reservation.id);
+      } catch (error) {
+        failed.push(error instanceof Error ? error.message : reservation.actionName);
+      }
+    }
+    setLocalMigrationItems((previous) => previous.filter((item) => !succeeded.includes(item.id)));
+    setImportingLocal(false);
+    if (failed.length) setToast(`Importadas ${imported} reservas. ${failed.length} ficaram por importar devido a conflitos; revê os horários e tenta novamente.`);
+    else setToast(`Importação concluída: ${imported} reservas copiadas para a Firebase.`);
+  }
+
+  async function removeReservation(reservation: Reservation) {
     if (reservation.municipality !== municipality) {
       setToast(`Só ${reservation.municipality} pode remover esta ação.`);
       return;
     }
     if (!window.confirm(`Queres remover “${reservation.actionName}” de ${reservation.timeSlot}?`)) return;
-    setReservations((previous) => previous.filter((r) => r.id !== reservation.id));
-    setToast("Reserva removida. Os intervalos adjacentes foram recalculados.");
+    try {
+      if (firebaseConfigured) {
+        if (syncStatus !== "online") throw new Error("A sincronização Firebase ainda não está pronta.");
+        await deleteReservationCloud(reservation.id);
+      } else {
+        setReservations((previous) => previous.filter((r) => r.id !== reservation.id));
+      }
+      setToast("Reserva removida. Os intervalos adjacentes foram recalculados.");
+    } catch (error) {
+      setToast(error instanceof Error ? error.message : "Não foi possível remover a reserva.");
+    }
   }
 
   function exportCSV() {
@@ -215,12 +304,12 @@ export default function Home() {
   return (
     <main className="app-shell" style={{ "--selected": selectedMeta.color, "--selected-pale": selectedMeta.pale } as React.CSSProperties}>
       <header className="topbar">
-        <a className="brand" href="#main" aria-label="Pentágono Urbano - início">
+        <a className="brand" href="#main" aria-label="Pentágono Urbano — início">
           <span className="brand-logo-wrap"><img src={logoUrl} alt="Pentágono Urbano" className="brand-logo" /></span>
           <span className="brand-divider" />
           <span className="brand-app"><strong>FITUR 2027</strong><small>Gestão de horários</small></span>
         </a>
-        <div className="topbar-meta"><span className="event-status"><i /> Planeamento do stand</span><span className="topbar-separator" /> <span>Madrid · 19-24 jan. 2027</span></div>
+        <div className="topbar-meta"><span className={`event-status sync-${syncStatus}`}><i /> {syncStatus === "online" ? "Sincronizado" : syncStatus === "connecting" ? "A ligar à Firebase…" : syncStatus === "error" ? "Erro de sincronização" : "Modo local"}</span><span className="topbar-separator" /><a className="screen-link" href="/ecran" target="_blank" rel="noreferrer">Ecrã do stand <ChevronRight size={13} /></a><span className="topbar-separator" /> <span>Madrid · 19—24 jan. 2027</span></div>
       </header>
 
       <div className="content-shell" id="main">
@@ -231,7 +320,7 @@ export default function Home() {
               const count = reservations.filter((r) => r.municipality === m.name).length;
               const selected = municipality === m.name;
               return <button key={m.name} type="button" aria-pressed={selected} className={`municipality-option ${selected ? "is-selected" : ""}`} style={{ "--muni": m.color, "--muni-pale": m.pale } as React.CSSProperties} onClick={() => setMunicipality(m.name)}>
-                <span className="municipality-color" />
+                {m.logo ? <img className="municipality-logo" src={m.logo} alt={`Logótipo do Município de ${m.name}`} loading="lazy" /> : <span className="municipality-color" />}
                 <span className="municipality-option-name">{m.name}</span>
                 <span className="municipality-res-count">{count}</span>
                 {selected && <span className="selected-check"><CheckCircle2 size={14} /></span>}
@@ -246,6 +335,8 @@ export default function Home() {
         </section>
 
         <section className="calendar-card" aria-label="Calendário FITUR 2027">
+          {syncStatus === "local" && <div className="sync-notice"><Info size={14} /> Modo local: as reservas só ficam guardadas neste navegador. Configura a Firebase para partilhar entre municípios.</div>}
+          {firebaseConfigured && syncStatus === "online" && localMigrationItems.length > 0 && <div className="sync-notice migration-notice"><Info size={14} /><span>Encontrei {localMigrationItems.length} reservas antigas guardadas neste browser. Copia-as para a Firebase para não perderes o histórico local.</span><button type="button" disabled={importingLocal} onClick={importLocalReservations}>{importingLocal ? "A importar…" : "Importar reservas locais"}</button></div>}
           <div className="calendar-toolbar">
             <div className="calendar-month"><span className="month-icon"><CalendarDays size={17} /></span><div><strong>Janeiro 2027</strong><small>FITUR · IFEMA Madrid</small></div></div>
             <div className="hours-range"><Clock3 size={14} /><span>10:00–19:00</span><i /> <span>30 min por horário</span></div>
@@ -282,7 +373,7 @@ export default function Home() {
               return <button key={time} type="button" className={`time-slot ${slotClass}`} style={meta ? { "--slot-color": meta.color, "--slot-pale": meta.pale, "--slot-contrast": meta.contrast } as React.CSSProperties : {}} aria-label={label} onClick={() => reservation ? (own ? openEdit(reservation) : setToast(`Este horário está reservado por ${reservation.municipality}.`)) : blocked ? setToast("Intervalo de segurança: este horário está bloqueado.") : openNew(time)}>
                 <span className="slot-top"><strong>{time}</strong><span>{getEndTime(time)}</span></span>
                 {reservation ? <>
-                  <span className="slot-status"><i />{own ? "A TUA AÇÃO" : meta?.short}</span>
+                  <span className="slot-status"><i />{reservation.municipality}</span>
                   <span className="slot-action-name">{reservation.actionName}</span>
                   <span className="slot-bottom">{own ? <><Edit3 size={12} /> Editar</> : <><LockKeyhole size={12} /> Ocupado</>}</span>
                 </> : blocked ? <>
@@ -319,7 +410,7 @@ export default function Home() {
                   <td className="date-cell"><strong>{DAYS[r.dayIndex].date} JAN</strong><small>{r.timeSlot}–{getEndTime(r.timeSlot)}</small></td>
                   <td><span className="table-municipality"><i style={{ background: meta.color }} />{r.municipality}</span></td>
                   <td><strong className="table-action-name">{r.actionName}</strong>{r.notes && <small className="table-note">{r.notes}</small>}</td>
-                  <td><span className="table-responsible">{r.responsible || "-"}</span><small className="table-contact">{r.contact || "Sem contacto"}</small></td>
+                  <td><span className="table-responsible">{r.responsible || "—"}</span><small className="table-contact">{r.contact || "Sem contacto"}</small></td>
                   <td><div className="row-actions">{r.municipality === municipality && <><button type="button" aria-label={`Editar ${r.actionName}`} title="Editar" onClick={() => openEdit(r)}><Edit3 size={14} /></button><button type="button" aria-label={`Remover ${r.actionName}`} title="Remover" onClick={() => removeReservation(r)}><Trash2 size={14} /></button></>}</div></td>
                 </tr>;})}
               </tbody></table></div>
@@ -343,7 +434,7 @@ export default function Home() {
             <label htmlFor="notes">Notas <span className="optional">OPCIONAL</span></label>
             <textarea id="notes" maxLength={500} rows={3} value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Necessidades técnicas ou outras informações" />
             {!editing && <div className="modal-warning"><Info size={15} /><span>Os dois blocos adjacentes ficam reservados para assegurar a transição entre ações.</span></div>}
-            <div className="modal-buttons"><button className="button-secondary" type="button" onClick={closeModal}>Cancelar</button><button className="button-primary" type="submit">{editing ? "Guardar alterações" : "Confirmar reserva"}<ChevronRight size={16} /></button></div>
+            <div className="modal-buttons"><button className="button-secondary" type="button" onClick={closeModal}>Cancelar</button><button className="button-primary" type="submit" disabled={saving}>{saving ? "A guardar…" : editing ? "Guardar alterações" : "Confirmar reserva"}<ChevronRight size={16} /></button></div>
           </form>
         </section>
       </div>}

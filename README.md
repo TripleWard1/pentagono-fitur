@@ -1,37 +1,105 @@
-# Pentágono Urbano · FITUR 2027
+# Pentágono Urbano — FITUR 2027
 
-Interface de planeamento redesenhada para coordenar as ações dos cinco municípios no stand conjunto da FITUR 2027.
+Aplicação Next.js para coordenar o calendário de ações dos cinco municípios do Pentágono Urbano na FITUR 2027.
+
+## O que inclui
+
+- Calendário de 19 a 24 de janeiro de 2027, em blocos de 30 minutos (10:00–19:00).
+- Limite de 3 reservas por município/dia e bloqueios dos blocos adjacentes.
+- Reservas partilhadas em tempo real através do Cloud Firestore, quando configurado.
+- Modo local com `localStorage` para pré-visualização sem Firebase.
+- Ecrã público para a televisão do stand em `/ecran`, que roda automaticamente entre dias com atividades.
+- Logótipo Pentágono Urbano como favicon e ícone de instalação em dispositivos móveis.
+- Logótipos experimentais de Braga e Barcelos carregados dos URLs fornecidos.
+- Verdana como fonte principal; campos de formulário com 16 px em mobile para evitar zoom automático do Safari.
 
 ## Executar localmente
 
-Requer Node.js 18.17 ou superior.
+Requer Node.js 20 ou superior recomendado.
 
 ```bash
 npm install
+cp .env.example .env.local
 npm run dev
 ```
 
-Abrir http://localhost:3000. Para gerar a versão de produção: `npm run build` e `npm start`.
+Abre `http://localhost:3000`. Sem variáveis Firebase, a app funciona em modo local, mas os dados não são partilhados entre browsers ou dispositivos.
 
-## O que mudou
+## Configurar Firebase / Cloud Firestore
 
-- Direção visual editorial e institucional, com hierarquia tipográfica, paleta natural, espaço em branco e estados visuais distintos.
-- Layout adaptável a desktop, tablet e telemóvel.
-- Seleção dos cinco municípios e navegação pelos seis dias (19–24 de janeiro de 2027).
-- Grelha com 18 blocos de 30 minutos entre as 10:00 e as 19:00.
-- Regra de máximo de três reservas por município/dia.
-- Bloqueio dos blocos imediatamente anterior e posterior a cada reserva.
-- Criação, edição e remoção de ações com responsável, contacto e notas.
-- Pesquisa, vista de um município ou de todos e exportação CSV.
-- Persistência das reservas no armazenamento local do browser.
+### 1. Criar a base de dados
 
-## Nota importante sobre dados partilhados
+1. Abre a [Firebase Console](https://console.firebase.google.com/) e seleciona o projeto.
+2. Em **Build → Firestore Database** (ou **Databases & Storage → Firestore**), clica em **Create database**.
+3. Escolhe **Production mode** (as regras do projeto devem substituir as regras iniciais antes de testar).
+4. Escolhe a localização europeia que melhor se adequa ao projeto. A localização da base de dados não pode ser alterada depois de criada; confirma a opção antes de continuar.
+5. Conclui a criação.
 
-Esta versão guarda os dados **no browser/dispositivo onde é utilizada**. Não existe ainda uma base de dados central nem sincronização em tempo real entre computadores. Para uso operacional simultâneo pelos cinco municípios, é necessário ligar a aplicação a um backend partilhado (por exemplo, PostgreSQL/Supabase) e validar as regras de reserva no servidor. A interface apresenta a persistência local explicitamente para não criar a impressão de que os dados já estão sincronizados.
+### 2. Ativar autenticação anónima
 
-## Regras do calendário
+A versão atual inicia uma sessão Firebase anónima automaticamente (não mostra ecrã de login):
 
-- Um slot corresponde a 30 minutos; o último começa às 18:30 e termina às 19:00.
-- O máximo diário é de três slots por município.
-- Os slots adjacentes a uma reserva ficam indisponíveis para todos os municípios.
-- A exportação gera um CSV UTF-8 com separador `;`, adequado para abrir em folhas de cálculo.
+1. Na consola, abre **Build → Authentication → Get started**.
+2. Em **Sign-in method**, ativa **Anonymous**.
+
+Isto é para facilitar um piloto interno. Não identifica cada município nem impede que um visitante público da aplicação consiga obter uma sessão anónima.
+
+### 3. Registar a app Web e copiar a configuração
+
+1. Nas definições do projeto Firebase, em **Your apps**, adiciona uma aplicação **Web** (ícone `</>`), se ainda não existir.
+2. Regista a aplicação e copia os valores do `firebaseConfig`.
+3. Copia `.env.example` para `.env.local` e preenche os campos:
+
+```env
+NEXT_PUBLIC_FIREBASE_API_KEY=...
+NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=...firebaseapp.com
+NEXT_PUBLIC_FIREBASE_PROJECT_ID=...
+NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=...
+NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=...
+NEXT_PUBLIC_FIREBASE_APP_ID=...
+```
+
+Não publiques o ficheiro `.env.local` no Git. As variáveis `NEXT_PUBLIC_` ficam visíveis no cliente; são identificadores de configuração do SDK Web, não chaves de conta de serviço. **Nunca** coloques uma chave privada/JSON de service account nestas variáveis.
+
+### 4. Aplicar as regras do Firestore
+
+No projeto Firebase, abre **Firestore Database → Rules**, substitui as regras pelo conteúdo de `firestore.rules` e clica em **Publish**. As mesmas regras estão incluídas no ZIP para revisão.
+
+O modelo de dados é criado automaticamente pela app à medida que as reservas são feitas; não precisas de criar coleções manualmente. A app usa:
+
+- `reservations` — os dados de cada ação;
+- `slotLocks` — bloqueios transacionais do horário e dos blocos adjacentes;
+- `dailyCounters` — contagem transacional para o limite diário por município.
+
+### 5. Testar localmente
+
+Depois de guardar `.env.local`, reinicia `npm run dev`. O topo da plataforma deve mostrar **Sincronizado**. Cria uma reserva, abre outro browser ou uma janela privada e entra no mesmo endereço: com Firebase ligado, a reserva deve aparecer nos dois sítios.
+
+Se aparecer **Erro de sincronização**, confirma que o projeto ID e as variáveis estão certos, a autenticação anónima está ativada, o Firestore foi criado e as regras foram publicadas.
+
+### 6. Configurar no Vercel
+
+No Vercel, abre o projeto → **Settings → Environment Variables** e adiciona as mesmas seis variáveis `NEXT_PUBLIC_FIREBASE_...` para Production (e Preview, se necessário). Depois faz **Redeploy**: novas variáveis só entram no deployment seguinte.
+
+## Ecrã gigante da FITUR
+
+A página para a televisão fica numa rota diferente da aplicação de gestão:
+
+- Gestão: `https://pentagono-fitur.vercel.app/`
+- Ecrã do stand: `https://pentagono-fitur.vercel.app/ecran`
+
+A rota `/ecran` usa a mesma base de dados, apresenta as atividades em cartões grandes e roda automaticamente entre dias/páginas. É o mesmo deployment e domínio, mas um URL próprio. Depois do deploy, abre esse endereço no computador ligado ao ecrã e coloca o browser em ecrã inteiro.
+
+## Favicon e instalação no telemóvel
+
+O projeto inclui `/favicon.png`, `/icon-192.png`, `/icon-512.png`, `/apple-touch-icon.png` e `app/manifest.ts`. Depois do deploy, se o ícone antigo continuar a aparecer, remove o atalho anterior do ecrã principal e volta a adicionar o site; os browsers podem manter os ícones em cache.
+
+## Segurança importante antes de uso oficial
+
+A autenticação anónima é conveniente para uma demonstração, mas **não constitui controlo de acesso aos municípios**: qualquer pessoa que consiga abrir o site pode criar uma sessão anónima. As regras fornecidas validam parte da estrutura dos documentos, mas as operações de slots/counters continuam expostas a utilizadores autenticados anonimamente.
+
+Antes de divulgar o endereço publicamente ou utilizar o calendário como registo oficial, recomendo acrescentar login real (contas por município), permissões por papel, validação crítica no servidor/Cloud Functions e Firebase App Check. Assim, só pessoas autorizadas podem criar/editar reservas e o limite de horários deixa de depender exclusivamente do cliente.
+
+## Logótipos dos municípios
+
+Os logótipos experimentais de Braga e Barcelos são carregados dos URLs Imgur fornecidos. Os três restantes municípios continuam a usar o quadrado de cor, até serem fornecidos os respetivos logótipos.

@@ -1,0 +1,44 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function signedIn() {
+      return request.auth != null;
+    }
+    function validMunicipality(name) {
+      return name in ['Braga', 'Guimarães', 'Vila Nova de Famalicão', 'Viana do Castelo', 'Barcelos'];
+    }
+    function validReservation(data) {
+      return data.municipality is string
+        && validMunicipality(data.municipality)
+        && data.dayIndex is int
+        && data.dayIndex >= 0 && data.dayIndex <= 5
+        && data.timeSlot is string
+        && data.timeSlot.matches('^(10:00|10:30|11:00|11:30|12:00|12:30|13:00|13:30|14:00|14:30|15:00|15:30|16:00|16:30|17:00|17:30|18:00|18:30)$')
+        && data.actionName is string && data.actionName.size() > 0 && data.actionName.size() <= 120
+        && data.responsible is string && data.responsible.size() <= 100
+        && data.contact is string && data.contact.size() <= 120
+        && data.notes is string && data.notes.size() <= 500;
+    }
+
+    // App writes are authenticated anonymously for this initial pilot. Anyone who can load
+    // the public app can obtain an anonymous session; this is NOT municipality-level access control.
+    // Add individual sign-in/roles and Firebase App Check before using sensitive or production data.
+    match /reservations/{reservationId} {
+      allow read: if signedIn();
+      allow create: if signedIn() && request.resource.data.id == reservationId && validReservation(request.resource.data);
+      allow update: if signedIn()
+        && request.resource.data.id == resource.data.id
+        && request.resource.data.municipality == resource.data.municipality
+        && request.resource.data.dayIndex == resource.data.dayIndex
+        && request.resource.data.timeSlot == resource.data.timeSlot
+        && validReservation(request.resource.data);
+      allow delete: if signedIn() && validReservation(resource.data);
+    }
+    match /slotLocks/{lockId} {
+      allow read, write: if signedIn();
+    }
+    match /dailyCounters/{counterId} {
+      allow read, write: if signedIn();
+    }
+  }
+}

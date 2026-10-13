@@ -142,10 +142,16 @@ export default function Home() {
   }, [toast]);
 
   const getAt = (d: number, t: string) => reservations.find((r) => r.dayIndex === d && r.timeSlot === t);
-  const isBlocked = (d: number, t: string) => {
+  const getBlockingReservation = (d: number, t: string) => {
     const index = TIMES.indexOf(t);
-    return (index > 0 && !!getAt(d, TIMES[index - 1])) || (index < TIMES.length - 1 && !!getAt(d, TIMES[index + 1]));
+    const previous = index > 0 ? getAt(d, TIMES[index - 1]) : undefined;
+    const next = index < TIMES.length - 1 ? getAt(d, TIMES[index + 1]) : undefined;
+    // Cada ação ocupa o seu bloco e exige um bloco de 30 min sem outra atividade.
+    if (previous) return { reservation: previous, direction: "after" as const };
+    if (next) return { reservation: next, direction: "before" as const };
+    return null;
   };
+  const isBlocked = (d: number, t: string) => Boolean(getBlockingReservation(d, t));
 
   const dayReservations = reservations.filter((r) => r.dayIndex === day);
   const mineToday = dayReservations.filter((r) => r.municipality === municipality);
@@ -365,11 +371,17 @@ export default function Home() {
           <div className="time-grid">
             {TIMES.map((time, index) => {
               const reservation = getAt(day, time);
-              const blocked = !reservation && isBlocked(day, time);
+              const blocker = !reservation ? getBlockingReservation(day, time) : null;
+              const blocked = Boolean(blocker);
               const own = reservation?.municipality === municipality;
               const meta = reservation ? getMunicipality(reservation.municipality) : null;
               const slotClass = reservation ? (own ? "slot-own" : "slot-other") : (blocked ? "slot-blocked" : "slot-free");
-              const label = reservation ? `${time} a ${getEndTime(time)}. ${reservation.actionName}, ${reservation.municipality}. ${own ? "Editar ação" : "Ocupado"}` : blocked ? `${time} a ${getEndTime(time)}. Intervalo de segurança.` : `${time} a ${getEndTime(time)}. Reservar horário.`;
+              const blockedDescription = blocker
+                ? blocker.direction === "after"
+                  ? `Intervalo obrigatório depois da ação das ${blocker.reservation.timeSlot}.`
+                  : `Intervalo obrigatório antes da ação das ${blocker.reservation.timeSlot}.`
+                : "Intervalo de segurança.";
+              const label = reservation ? `${time} a ${getEndTime(time)}. ${reservation.actionName}, ${reservation.municipality}. ${own ? "Editar ação" : "Ocupado"}` : blocked ? `${time} a ${getEndTime(time)}. ${blockedDescription}` : `${time} a ${getEndTime(time)}. Reservar horário.`;
               return <button key={time} type="button" className={`time-slot ${slotClass}`} style={meta ? { "--slot-color": meta.color, "--slot-pale": meta.pale, "--slot-contrast": meta.contrast } as React.CSSProperties : {}} aria-label={label} onClick={() => reservation ? (own ? openEdit(reservation) : setToast(`Este horário está reservado por ${reservation.municipality}.`)) : blocked ? setToast("Intervalo de segurança: este horário está bloqueado.") : openNew(time)}>
                 <span className="slot-top"><strong>{time}</strong><span>{getEndTime(time)}</span></span>
                 {reservation ? <>
@@ -377,7 +389,9 @@ export default function Home() {
                   <span className="slot-action-name">{reservation.actionName}</span>
                   <span className="slot-bottom">{own ? <><Edit3 size={12} /> Editar</> : <><LockKeyhole size={12} /> Ocupado</>}</span>
                 </> : blocked ? <>
-                  <span className="blocked-icon"><LockKeyhole size={14} /></span><span className="slot-action-name blocked-text">Intervalo</span><span className="slot-bottom muted-bottom">Margem de segurança</span>
+                  <span className="blocked-icon"><LockKeyhole size={14} /></span>
+                  <span className="slot-action-name blocked-text">{blocker?.direction === "after" ? `Pausa após ${blocker.reservation.timeSlot}` : blocker ? `Pausa antes de ${blocker.reservation.timeSlot}` : "Intervalo"}</span>
+                  <span className="slot-bottom muted-bottom">30 min sem atividade</span>
                 </> : <>
                   <span className="slot-action-name free-action"><Plus size={14} /> Reservar horário</span>
                   <span className="slot-bottom free-bottom">Disponível <ChevronRight size={13} /></span>
@@ -388,7 +402,7 @@ export default function Home() {
           </div>
 
           <div className="calendar-footer">
-            <span><Info size={14} /> Após cada reserva, o bloco anterior e o seguinte ficam bloqueados.</span>
+            <span><Info size={14} /> Cada reserva exige 30 min de intervalo antes e depois. Ex.: 10:00 → próxima hora possível às 11:00.</span>
             <div className="availability-summary"><span><i className="avail-dot" />{availableCount} livres</span><span><i className="reserved-dot" />{dayReservations.length} reservados</span><span><i className="blocked-dot" />{blockedCount} intervalos</span></div>
           </div>
         </section>

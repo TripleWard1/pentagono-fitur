@@ -7,8 +7,11 @@ export const metadata: Metadata = {
   manifest: '/manifest.webmanifest',
   appleWebApp: { capable: true, statusBarStyle: 'default', title: 'Pentágono FITUR' },
   icons: {
-    icon: [{ url: '/favicon.png', type: 'image/png' }],
-    apple: [{ url: '/apple-touch-icon.png', sizes: '180x180', type: 'image/png' }],
+    icon: [
+      { url: '/favicon.ico?rev=7', type: 'image/x-icon' },
+      { url: '/pentagono-favicon.png?rev=7', type: 'image/png', sizes: '64x64' },
+    ],
+    apple: [{ url: '/pentagono-apple-touch-icon.png?rev=7', sizes: '180x180', type: 'image/png' }],
   },
 };
 

@@ -100,7 +100,7 @@ export default function StandScreen() {
             const meta = getMeta(item.municipality);
             return <article className="screen-activity" key={item.id} style={{ "--town": meta.color } as React.CSSProperties}>
               <div className="screen-activity-time"><strong>{item.timeSlot}</strong><span>ATÉ {endTime(item.timeSlot)}</span></div>
-              <div className="screen-activity-main"><div className="screen-town">{meta.logo && <img src={meta.logo} alt="" />}<span>{item.municipality}</span></div><h2>{item.actionName}</h2>{item.responsible && <p>{item.responsible}</p>}</div>
+              <div className="screen-activity-main"><div className={`screen-town ${meta.logo ? "screen-town-has-logo" : ""}`}>{meta.logo && <img src={meta.logo} alt={`Logótipo do Município de ${item.municipality}`} loading="eager" />}<span>{item.municipality}</span></div><h2>{item.actionName}</h2>{item.responsible && <p>{item.responsible}</p>}</div>
               <div className="screen-activity-marker" aria-hidden="true" />
             </article>;
           })}

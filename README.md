@@ -5,12 +5,12 @@ Aplicação Next.js para coordenar o calendário de ações dos cinco município
 ## O que inclui
 
 - Calendário de 19 a 24 de janeiro de 2027, em blocos de 30 minutos (10:00–19:00).
-- Limite de 3 reservas por município/dia e bloqueios dos blocos adjacentes.
+- Limite de 3 reservas por município/dia; cada atividade tem o próprio bloco de 30 minutos e um bloco de intervalo antes e depois (ex.: reserva às 10:00 bloqueia 10:30; a próxima hora possível é 11:00).
 - Reservas partilhadas em tempo real através do Cloud Firestore, quando configurado.
 - Modo local com `localStorage` para pré-visualização sem Firebase.
 - Ecrã público para a televisão do stand em `/ecran`, que roda automaticamente entre dias com atividades.
-- Logótipo Pentágono Urbano como favicon e ícone de instalação em dispositivos móveis.
-- Logótipos experimentais de Braga e Barcelos carregados dos URLs fornecidos.
+- Símbolo multicolorido do Pentágono Urbano como favicon e ícone de instalação em dispositivos móveis, com novos nomes de ficheiro para evitar cache dos ícones antigos.
+- Logótipos experimentais de Braga e Barcelos carregados dos URLs fornecidos, ampliados e sem fundo branco aplicado por CSS.
 - Verdana como fonte principal; campos de formulário com 16 px em mobile para evitar zoom automático do Safari.
 
 ## Executar localmente
@@ -92,7 +92,7 @@ A rota `/ecran` usa a mesma base de dados, apresenta as atividades em cartões g
 
 ## Favicon e instalação no telemóvel
 
-O projeto inclui `/favicon.png`, `/icon-192.png`, `/icon-512.png`, `/apple-touch-icon.png` e `app/manifest.ts`. Depois do deploy, se o ícone antigo continuar a aparecer, remove o atalho anterior do ecrã principal e volta a adicionar o site; os browsers podem manter os ícones em cache.
+O projeto inclui `public/favicon.ico`, `public/pentagono-favicon.png`, novos ícones PWA de 192/512 px, um ícone Apple Touch e as convenções `app/icon.png` e `app/apple-icon.png`. Depois do deploy, se o “P” antigo continuar a aparecer, remove o atalho anterior do ecrã principal e volta a adicionar o site; os browsers podem guardar permanentemente o ícone de uma instalação antiga.
 
 ## Segurança importante antes de uso oficial
 

@@ -79,6 +79,8 @@ function dailyCounterId(dayIndex: number, municipality: Municipality) {
 }
 function relatedSlots(dayIndex: number, timeSlot: string) {
   const index = TIMES.indexOf(timeSlot);
+  // Bloqueia o próprio bloco e os blocos contíguos. Uma marcação às 10:00
+  // impede 10:30, deixando 11:00 como a próxima hora possível.
   return [index > 0 ? TIMES[index - 1] : null, timeSlot, index < TIMES.length - 1 ? TIMES[index + 1] : null]
     .filter((value): value is string => Boolean(value));
 }

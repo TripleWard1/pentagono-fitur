@@ -214,7 +214,8 @@ button:disabled { opacity: .45; cursor: not-allowed; }
   .picker-title { gap: 8px; margin-bottom: 8px; flex-wrap: wrap; }
   .picker-help { font-size: 9px; }
   .municipality-options { display: flex; gap: 6px; overflow-x: auto; padding: 1px 1px 5px; margin-right: -1px; scrollbar-width: thin; }
-  .municipality-option { min-width: max-content; min-height: 36px; padding: 7px 9px; gap: 6px; }
+  .municipality-option { min-width: max-content; min-height: 44px; padding: 5px 9px; gap: 7px; }
+  .municipality-logo { width: 30px; height: 30px; }
   .municipality-option-name { max-width: 152px; font-size: 9px; }
   .municipality-res-count { min-width: 18px; height: 18px; font-size: 9px; }
   .selected-check { display: none; }
@@ -589,7 +590,7 @@ body::before {
 .screen-link { display: inline-flex; align-items: center; gap: 4px; color: var(--ink); text-decoration: none; font-weight: 700; }
 .screen-link:hover { color: #087a98; text-decoration: underline; }
 .sync-notice { display: flex; align-items: center; gap: 8px; padding: 8px 12px; margin: 0 0 12px; border: 1px solid #e6d39b; border-left: 4px solid #d7a900; border-radius: 4px; background: #fff9e8; color: #65511a; font-size: 10px; line-height: 1.5; }
-.municipality-logo { width: 26px; height: 26px; object-fit: contain; flex: 0 0 auto; background: #fff; border-radius: 3px; }
+.municipality-logo { width: 36px; height: 36px; object-fit: contain; object-position: center; flex: 0 0 auto; background: transparent; border-radius: 0; display: block; }
 .municipality-option { min-height: 50px; }
 .municipality-option-name { overflow-wrap: anywhere; }
 .slot-status { white-space: normal; text-overflow: clip; overflow: visible; overflow-wrap: anywhere; line-height: 1.25; align-items: flex-start; }
@@ -632,8 +633,8 @@ body::before {
 .screen-activity-time strong { color: var(--town); font-size: clamp(20px, 2vw, 34px); letter-spacing: -.04em; white-space: nowrap; }
 .screen-activity-time span { color: #56635a; font-size: clamp(8px, .66vw, 11px); font-weight: 700; letter-spacing: .08em; }
 .screen-activity-main { min-width: 0; display: flex; flex-direction: column; justify-content: center; padding: 1.2vh 1.2vw; }
-.screen-town { display: flex; align-items: center; gap: 7px; min-height: 22px; color: var(--town); font-size: clamp(10px, .85vw, 14px); font-weight: 700; }
-.screen-town img { width: 24px; height: 24px; object-fit: contain; background: #fff; border-radius: 2px; }
+.screen-town { display: flex; align-items: center; gap: 12px; min-height: clamp(44px, 3.5vw, 64px); color: var(--town); font-size: clamp(11px, .92vw, 16px); font-weight: 700; }
+.screen-town img { width: clamp(44px, 3.5vw, 64px); height: clamp(44px, 3.5vw, 64px); object-fit: contain; object-position: center; flex: 0 0 auto; display: block; background: transparent; border: 0; border-radius: 0; padding: 0; }
 .screen-activity-main h2 { margin: 6px 0 0; font-size: clamp(15px, 1.45vw, 24px); line-height: 1.24; overflow-wrap: anywhere; }
 .screen-activity-main p { margin: 6px 0 0; color: #627067; font-size: clamp(10px, .8vw, 13px); }
 .screen-pagination { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex: 0 0 auto; border-top: 1px solid #e4e8e3; padding-top: 1vh; }
@@ -656,6 +657,7 @@ body::before {
   .screen-app { min-height: 100dvh; height: auto; overflow: auto; padding: 0 14px; }
   .screen-header { align-items: flex-start; flex-wrap: wrap; gap: 10px; padding: 12px 0; }
   .screen-brand { gap: 9px; }.screen-brand > img { width: 54px; height: 54px; }.screen-divider { height: 35px; }
+  .screen-town { gap: 8px; min-height: 36px; }.screen-town img { width: 36px; height: 36px; }
   .screen-brand strong { font-size: 12px; }.screen-brand small { font-size: 8px; }
   .screen-status { width: 100%; justify-content: space-between; gap: 8px; }.screen-connection { font-size: 9px; }
   .screen-main { min-height: 70vh; overflow: visible; padding: 18px 0 14px; }
@@ -673,3 +675,8 @@ body::before {
 .migration-notice span { flex: 1 1 260px; }
 .migration-notice button { border: 1px solid #c5a64f; border-radius: 4px; background: #fffdf5; color: #5b4915; padding: 7px 10px; font-size: 10px; font-weight: 700; }
 .migration-notice button:disabled { opacity: .65; }
+
+
+/* Reserved icon assets must never be framed by an artificial white tile. */
+.municipality-logo, .screen-town img { box-shadow: none; outline: 0; }
+.blocked-text { color: #59625f; }

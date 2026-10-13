@@ -40,5 +40,13 @@ service cloud.firestore {
     match /dailyCounters/{counterId} {
       allow read, write: if signedIn();
     }
+
+    // New interval schema: each reservation locks itself and the next half-hour buffer.
+    match /slotLocksV2/{lockId} {
+      allow read, write: if signedIn();
+    }
+    match /system/{documentId} {
+      allow read, write: if signedIn();
+    }
   }
 }

@@ -8,10 +8,11 @@ export const metadata: Metadata = {
   appleWebApp: { capable: true, statusBarStyle: 'default', title: 'Pentágono FITUR' },
   icons: {
     icon: [
-      { url: '/favicon.ico?rev=7', type: 'image/x-icon' },
-      { url: '/pentagono-favicon.png?rev=7', type: 'image/png', sizes: '64x64' },
+      { url: '/favicon-v8.ico', type: 'image/x-icon', sizes: '16x16 32x32 48x48 64x64' },
+      { url: '/pentagono-favicon-v8.png', type: 'image/png', sizes: '64x64' },
     ],
-    apple: [{ url: '/pentagono-apple-touch-icon.png?rev=7', sizes: '180x180', type: 'image/png' }],
+    shortcut: [{ url: '/pentagono-favicon-v8.png', type: 'image/png', sizes: '64x64' }],
+    apple: [{ url: '/pentagono-apple-touch-icon-v8.png', sizes: '180x180', type: 'image/png' }],
   },
 };
 

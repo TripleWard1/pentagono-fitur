@@ -77,28 +77,77 @@ function lockId(dayIndex: number, timeSlot: string) {
 function dailyCounterId(dayIndex: number, municipality: Municipality) {
   return `${dayIndex}_${MUNICIPALITY_KEYS[municipality]}`;
 }
-function relatedSlots(dayIndex: number, timeSlot: string) {
+const LOCK_SCHEMA_VERSION = 'after-only-v2';
+function lockSchemaRef() {
+  return doc(db!, 'system', 'slotLockSchema');
+}
+function slotsToLock(timeSlot: string) {
   const index = TIMES.indexOf(timeSlot);
-  // Bloqueia o próprio bloco e os blocos contíguos. Uma marcação às 10:00
-  // impede 10:30, deixando 11:00 como a próxima hora possível.
-  return [index > 0 ? TIMES[index - 1] : null, timeSlot, index < TIMES.length - 1 ? TIMES[index + 1] : null]
+  // A reserva ocupa o seu bloco e o bloco seguinte para arrumação.
+  // Ex.: 16:00 bloqueia 16:30, mas permite uma nova atividade às 17:00.
+  return [timeSlot, index >= 0 && index < TIMES.length - 1 ? TIMES[index + 1] : null]
     .filter((value): value is string => Boolean(value));
+}
+
+/** Migra de forma transacional os bloqueios antigos para a regra de atividade + 30 min de arrumação. */
+export async function ensureSlotLockSchema() {
+  if (!db) throw new Error('Firebase não está configurado.');
+  const schemaRef = lockSchemaRef();
+  await runTransaction(db, async (transaction) => {
+    const schemaSnapshot = await transaction.get(schemaRef);
+    if (schemaSnapshot.exists() && schemaSnapshot.data().version === LOCK_SCHEMA_VERSION) return;
+
+    // Firestore transaction reads are all performed before any writes.
+    const existingReservations = await transaction.get(collection(db!, 'reservations'));
+    const lockDocs = new Map<string, { dayIndex: number; timeSlot: string; reservationId: string; kind: string; municipality: Municipality }>();
+    for (const snap of existingReservations.docs) {
+      const reservation = { ...snap.data(), id: snap.id } as Reservation;
+      if (!Number.isInteger(reservation.dayIndex) || !TIMES.includes(reservation.timeSlot)) continue;
+      for (const time of slotsToLock(reservation.timeSlot)) {
+        const id = lockId(reservation.dayIndex, time);
+        const previous = lockDocs.get(id);
+        if (previous && previous.reservationId !== reservation.id) {
+          throw new Error(`Não foi possível migrar os bloqueios: existem reservas incompatíveis perto das ${time}. Revê o calendário antes de continuar.`);
+        }
+        lockDocs.set(id, {
+          dayIndex: reservation.dayIndex,
+          timeSlot: time,
+          reservationId: reservation.id,
+          kind: time === reservation.timeSlot ? 'reserved' : 'buffer',
+          municipality: reservation.municipality,
+        });
+      }
+    }
+    for (const [id, lock] of lockDocs) {
+      transaction.set(doc(db!, 'slotLocksV2', id), lock);
+    }
+    transaction.set(schemaRef, {
+      version: LOCK_SCHEMA_VERSION,
+      migratedAt: Date.now(),
+      reservationCount: existingReservations.size,
+    });
+  });
 }
 
 export async function createReservationCloud(reservation: Reservation) {
   if (!db) throw new Error('Firebase não está configurado.');
   const reservationRef = doc(db, 'reservations', reservation.id);
-  const lockRefs = relatedSlots(reservation.dayIndex, reservation.timeSlot).map((time) => ({
-    time, ref: doc(db!, 'slotLocks', lockId(reservation.dayIndex, time)),
+  const schemaRef = lockSchemaRef();
+  const lockRefs = slotsToLock(reservation.timeSlot).map((time) => ({
+    time, ref: doc(db!, 'slotLocksV2', lockId(reservation.dayIndex, time)),
   }));
   const counterRef = doc(db, 'dailyCounters', dailyCounterId(reservation.dayIndex, reservation.municipality));
 
   await runTransaction(db, async (transaction) => {
+    const schemaSnapshot = await transaction.get(schemaRef);
+    if (!schemaSnapshot.exists() || schemaSnapshot.data().version !== LOCK_SCHEMA_VERSION) {
+      throw new Error('A agenda está a preparar as regras de intervalo. Atualiza a página e tenta novamente.');
+    }
     const lockSnapshots = [];
     for (const lock of lockRefs) lockSnapshots.push(await transaction.get(lock.ref));
     const counterSnapshot = await transaction.get(counterRef);
     if (lockSnapshots.some((snapshot) => snapshot.exists())) {
-      throw new Error('Este horário ou um dos blocos de segurança foi entretanto ocupado. Atualiza o calendário e escolhe outro horário.');
+      throw new Error('Este horário ou o seu intervalo de arrumação foi entretanto ocupado. Atualiza o calendário e escolhe outro horário.');
     }
     const used = Number(counterSnapshot.data()?.count || 0);
     if (used >= 3) throw new Error('Este município já atingiu o limite de 3 horários neste dia.');
@@ -123,11 +172,16 @@ export async function updateReservationCloud(id: string, fields: Pick<Reservatio
 export async function deleteReservationCloud(id: string) {
   if (!db) throw new Error('Firebase não está configurado.');
   const reservationRef = doc(db, 'reservations', id);
+  const schemaRef = lockSchemaRef();
   await runTransaction(db, async (transaction) => {
+    const schemaSnapshot = await transaction.get(schemaRef);
+    if (!schemaSnapshot.exists() || schemaSnapshot.data().version !== LOCK_SCHEMA_VERSION) {
+      throw new Error('A agenda ainda está a preparar os intervalos. Atualiza a página e tenta novamente.');
+    }
     const reservationSnapshot = await transaction.get(reservationRef);
     if (!reservationSnapshot.exists()) throw new Error('A reserva já foi removida noutro dispositivo. Atualiza o calendário.');
     const reservation = reservationSnapshot.data() as Reservation;
-    const lockRefs = relatedSlots(reservation.dayIndex, reservation.timeSlot).map((time) => doc(db!, 'slotLocks', lockId(reservation.dayIndex, time)));
+    const lockRefs = slotsToLock(reservation.timeSlot).map((time) => doc(db!, 'slotLocksV2', lockId(reservation.dayIndex, time)));
     const counterRef = doc(db!, 'dailyCounters', dailyCounterId(reservation.dayIndex, reservation.municipality));
     const lockSnapshots = [];
     for (const ref of lockRefs) lockSnapshots.push(await transaction.get(ref));

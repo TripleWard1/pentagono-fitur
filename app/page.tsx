@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import type { FormEvent } from "react";
 import {
-  firebaseConfigured, ensureAnonymousSignIn, subscribeReservations,
+  firebaseConfigured, ensureAnonymousSignIn, ensureSlotLockSchema, subscribeReservations,
   createReservationCloud, updateReservationCloud, deleteReservationCloud,
   LOCAL_STORAGE_KEY,
 } from "@/lib/firebase";
@@ -104,7 +104,8 @@ export default function Home() {
     let cancelled = false;
     let unsubscribe: (() => void) | undefined;
     setSyncStatus("connecting");
-    ensureAnonymousSignIn().then(() => {
+    ensureAnonymousSignIn().then(async () => {
+      await ensureSlotLockSchema();
       if (cancelled) return;
       unsubscribe = subscribeReservations((items) => {
         setReservations(items);
@@ -123,7 +124,7 @@ export default function Home() {
       if (!cancelled) {
         setSyncStatus("error");
         setHydrated(true);
-        setToast("A ligação Firebase falhou. Ativa a autenticação anónima na consola Firebase.");
+        setToast("Não foi possível preparar a agenda na Firebase. Confirma a autenticação anónima e publica as regras Firestore incluídas nesta versão.");
       }
     });
     return () => { cancelled = true; unsubscribe?.(); };
@@ -402,7 +403,7 @@ export default function Home() {
           </div>
 
           <div className="calendar-footer">
-            <span><Info size={14} /> Cada reserva exige 30 min de intervalo antes e depois. Ex.: 10:00 → próxima hora possível às 11:00.</span>
+            <span><Info size={14} /> Cada atividade dura 30 min e reserva os 30 min seguintes para arrumação. Ex.: 16:00 → próxima atividade às 17:00.</span>
             <div className="availability-summary"><span><i className="avail-dot" />{availableCount} livres</span><span><i className="reserved-dot" />{dayReservations.length} reservados</span><span><i className="blocked-dot" />{blockedCount} intervalos</span></div>
           </div>
         </section>
@@ -447,7 +448,7 @@ export default function Home() {
             <div className="form-row"><div><label htmlFor="responsible">Técnico responsável</label><input id="responsible" maxLength={100} value={responsible} onChange={(e) => setResponsible(e.target.value)} placeholder="Nome completo" /></div><div><label htmlFor="contact">Contacto</label><input id="contact" maxLength={120} value={contact} onChange={(e) => setContact(e.target.value)} placeholder="Email ou telefone" /></div></div>
             <label htmlFor="notes">Notas <span className="optional">OPCIONAL</span></label>
             <textarea id="notes" maxLength={500} rows={3} value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Necessidades técnicas ou outras informações" />
-            {!editing && <div className="modal-warning"><Info size={15} /><span>Os dois blocos adjacentes ficam reservados para assegurar a transição entre ações.</span></div>}
+            {!editing && <div className="modal-warning"><Info size={15} /><span>O bloco seguinte fica reservado para 30 min de arrumação. A próxima atividade pode começar uma hora depois.</span></div>}
             <div className="modal-buttons"><button className="button-secondary" type="button" onClick={closeModal}>Cancelar</button><button className="button-primary" type="submit" disabled={saving}>{saving ? "A guardar…" : editing ? "Guardar alterações" : "Confirmar reserva"}<ChevronRight size={16} /></button></div>
           </form>
         </section>

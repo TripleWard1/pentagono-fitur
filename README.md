@@ -5,7 +5,7 @@ Aplicação Next.js para coordenar o calendário de ações dos cinco município
 ## O que inclui
 
 - Calendário de 19 a 24 de janeiro de 2027, em blocos de 30 minutos (10:00–19:00).
-- Limite de 3 reservas por município/dia; cada atividade tem o próprio bloco de 30 minutos e um bloco de intervalo antes e depois (ex.: reserva às 10:00 bloqueia 10:30; a próxima hora possível é 11:00).
+- Limite de 3 reservas por município/dia; cada atividade ocupa 30 minutos e bloqueia apenas os 30 minutos seguintes para arrumação (ex.: reserva às 16:00 bloqueia 16:30; a próxima atividade pode começar às 17:00).
 - Reservas partilhadas em tempo real através do Cloud Firestore, quando configurado.
 - Modo local com `localStorage` para pré-visualização sem Firebase.
 - Ecrã público para a televisão do stand em `/ecran`, que roda automaticamente entre dias com atividades.
@@ -63,12 +63,13 @@ Não publiques o ficheiro `.env.local` no Git. As variáveis `NEXT_PUBLIC_` fica
 
 ### 4. Aplicar as regras do Firestore
 
-No projeto Firebase, abre **Firestore Database → Rules**, substitui as regras pelo conteúdo de `firestore.rules` e clica em **Publish**. As mesmas regras estão incluídas no ZIP para revisão.
+No projeto Firebase, abre **Firestore Database → Rules**, substitui as regras pelo conteúdo de `firestore.rules` desta versão e clica em **Publish**. Esta atualização é obrigatória porque a versão usa as coleções `slotLocksV2` e `system/slotLockSchema`. As mesmas regras estão incluídas no ZIP para revisão.
 
 O modelo de dados é criado automaticamente pela app à medida que as reservas são feitas; não precisas de criar coleções manualmente. A app usa:
 
 - `reservations` — os dados de cada ação;
-- `slotLocks` — bloqueios transacionais do horário e dos blocos adjacentes;
+- `slotLocksV2` — bloqueios transacionais do próprio horário e do bloco seguinte para arrumação;
+- `system/slotLockSchema` — versão do esquema de bloqueios, com migração automática dos agendamentos existentes. A primeira abertura depois desta atualização migra os bloqueios dentro de uma transação; mantém a página aberta até surgir “Sincronizado”.
 - `dailyCounters` — contagem transacional para o limite diário por município.
 
 ### 5. Testar localmente
@@ -92,7 +93,7 @@ A rota `/ecran` usa a mesma base de dados, apresenta as atividades em cartões g
 
 ## Favicon e instalação no telemóvel
 
-O projeto inclui `public/favicon.ico`, `public/pentagono-favicon.png`, novos ícones PWA de 192/512 px, um ícone Apple Touch e as convenções `app/icon.png` e `app/apple-icon.png`. Depois do deploy, se o “P” antigo continuar a aparecer, remove o atalho anterior do ecrã principal e volta a adicionar o site; os browsers podem guardar permanentemente o ícone de uma instalação antiga.
+O projeto referencia ícones com nomes novos `favicon-v8.ico`, `pentagono-favicon-v8.png`, `pentagono-app-icon-192-v8.png`, `pentagono-app-icon-512-v8.png` e `pentagono-apple-touch-icon-v8.png` para invalidar a cache do favicon anterior. Depois do deploy, se o ícone antigo continuar a aparecer, remove o atalho antigo do ecrã principal e adiciona novamente a aplicação; os browsers podem conservar o ícone da instalação antiga.
 
 ## Segurança importante antes de uso oficial
 

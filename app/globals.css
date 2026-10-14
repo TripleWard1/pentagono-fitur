@@ -1198,7 +1198,8 @@ html, body { background: #fff; }
 }
 .screen-activity-v11::before { width: 9px; box-shadow: 4px 0 22px color-mix(in srgb, var(--town) 55%, transparent); }
 .screen-activity-time {
-  background: linear-gradient(165deg, color-mix(in srgb, var(--town) 94%, #000 0%) 0%, color-mix(in srgb, var(--town) 72%, #000) 100%);
+  background-color: var(--town);
+  background-image: linear-gradient(165deg, var(--town) 0%, color-mix(in srgb, var(--town) 72%, #000) 100%);
   box-shadow: 0 10px 22px -8px color-mix(in srgb, var(--town) 70%, transparent), inset 0 1px 0 rgba(255,255,255,.28);
 }
 .screen-activity-time strong { color: #fff; text-shadow: 0 2px 8px rgba(0,0,0,.18); }
@@ -1362,3 +1363,15 @@ body, .app-shell { background: #fff; }
 .pg-download { display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; margin-top: 22px; padding: 14px; border: 0; border-radius: 14px; background: linear-gradient(135deg, #0a5a36, #087443); color: #fff; font: inherit; font-size: 14px; font-weight: 800; box-shadow: 0 10px 22px rgba(8,116,67,.3); cursor: pointer; }
 .pg-footer { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 8px; margin-top: 28px; padding-top: 16px; border-top: 4px solid transparent; border-image: linear-gradient(90deg, #087443 0 20%, #f2b400 20% 40%, #df1427 40% 60%, #087a98 60% 80%, #55595c 80%) 1; font-size: 11px; font-weight: 600; color: #55645a; }
 .pg-footer strong { width: 100%; margin-top: 4px; font-size: 10.5px; letter-spacing: .14em; color: #07281a; }
+
+
+/* V20 — time panels: always a solid brand-colour block with legible type, and compact
+   chips on /programa (they no longer stretch with the activity text on phones). */
+.pg-card-time { background-color: var(--town); background-image: linear-gradient(165deg, var(--town), color-mix(in srgb, var(--town) 70%, #000)); }
+.pg-card { align-items: start; }
+.pg-card-time { align-self: start; padding: 11px 0 10px; min-height: 0; gap: 3px; box-shadow: 0 8px 16px -8px color-mix(in srgb, var(--town) 70%, transparent); }
+.pg-card-time strong { font-size: 18px; line-height: 1.1; }
+.pg-card:has(.pg-town-guimaraes) .pg-card-time span { color: rgba(43,33,0,.8); opacity: 1; }
+@media (max-width: 750px) {
+  .screen-activity-time { align-self: start; }
+}

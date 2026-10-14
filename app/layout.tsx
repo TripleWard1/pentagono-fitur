@@ -7,7 +7,7 @@ const inter = Inter({ subsets: ['latin', 'latin-ext'], display: 'swap', variable
 export const metadata: Metadata = {
   title: 'Pentágono Urbano | FITUR 2027',
   description: 'Plataforma de coordenação dos horários do stand conjunto do Pentágono Urbano na FITUR 2027.',
-  manifest: '/manifest.webmanifest?v=10',
+  manifest: '/manifest.webmanifest',
   appleWebApp: { capable: true, statusBarStyle: 'default', title: 'Pentágono FITUR' },
   icons: {
     icon: [
@@ -15,9 +15,6 @@ export const metadata: Metadata = {
       { url: '/pentagono-favicon-v9.png', type: 'image/png', sizes: '64x64' },
     ],
     shortcut: [{ url: '/favicon-pentagono-v9.ico', type: 'image/x-icon' }],
-    apple: [
-      { url: '/apple-touch-icon-pentagono-v10.png', type: 'image/png', sizes: '180x180' },
-    ],
   },
 };
 

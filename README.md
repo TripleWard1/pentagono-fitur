@@ -157,3 +157,11 @@ Após publicar, confirma que o deployment está associado ao domínio Production
 - A cápsula “Próxima Ação” foi ligeiramente compactada para libertar espaço vertical; a área principal das atividades ganhou um pouco de altura.
 - As marcas de água municipais foram deslocadas para a esquerda para evitar que os logótipos fiquem encostados/cortados na extremidade direita.
 - Na página principal de gestão (não na rota `/agenda`), os logótipos horizontais de Braga, Guimarães e Famalicão foram ampliados ligeiramente para equilibrar a presença visual.
+
+
+## V14 — ajuste das cápsulas do dia em destaque
+
+- Revertido o comportamento que trocava duas atividades longas por cartões de largura total.
+- A agenda principal volta a apresentar até quatro atividades por página, em grelha 2x2, mantendo as descrições com quebra de linha e sem limite artificial de linhas.
+- Aumentada ligeiramente a altura disponível para as cápsulas do dia em destaque.
+- A secção de pré-visualização dos próximos dias permanece inalterada.

@@ -96,10 +96,9 @@ export default function StandAgendaScreen() {
   const focusItems = useMemo(() => reservations
     .filter((item) => item.dayIndex === focusDayIndex)
     .sort((a, b) => TIMES.indexOf(a.timeSlot) - TIMES.indexOf(b.timeSlot)), [reservations, focusDayIndex]);
-  // Keep four actions per screen when descriptions are short. Long descriptions use two wider capsules
-  // so the full text remains visible without being clipped by the card.
-  const focusPageSize = focusItems.some((item) => (item.notes?.trim().length || 0) > 110) ? 2 : 4;
-  const focusPages = useMemo(() => splitIntoPages(focusItems, focusPageSize), [focusItems, focusPageSize]);
+  // Keep the original compact 2x2 activity layout. Long descriptions wrap vertically
+  // inside each capsule instead of switching the main agenda to full-width cards.
+  const focusPages = useMemo(() => splitIntoPages(focusItems, 4), [focusItems]);
   const currentItems = focusPages[pageIndex] || focusPages[0] || [];
 
   const upcomingDays: DayPreview[] = useMemo(() => DAYS

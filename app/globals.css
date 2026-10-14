@@ -848,7 +848,7 @@ body::before {
   overflow-wrap: anywhere;
   line-height: 1.28;
 }
-.screen-activities-v12 { max-height: 35vh; }
+.screen-activities-v12 { max-height: 38vh; min-height: 33vh; }
 .screen-activities-v12 .screen-activity-v11 { min-height: 0; }
 .screen-activity-description {
   display: block;

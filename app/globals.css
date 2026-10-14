@@ -915,3 +915,40 @@ body::before {
   .screen-activity-watermark { right: 3%; width: 38%; }
   .screen-upcoming-watermark { right: 2%; width: 44%; }
 }
+
+/* V15 — fit the upcoming-day capsules without changing the main day's layout. */
+@media (min-width: 751px) {
+  .screen-main-v12 .screen-next-action { margin-bottom: .2vh; }
+  .screen-main-v12 .screen-next-label { padding-top: .42vh; padding-bottom: .42vh; }
+  .screen-main-v12 .screen-next-body {
+    min-height: clamp(76px, 8.9vh, 108px);
+    padding-top: .4vh;
+    padding-bottom: .4vh;
+  }
+  .screen-main-v12 .screen-next-logo img {
+    width: clamp(80px, 7vw, 120px);
+    height: clamp(52px, 6.2vh, 72px);
+  }
+  .screen-main-v12 .screen-next-copy h2 {
+    margin-top: .3vh;
+    margin-bottom: .2vh;
+    font-size: clamp(16px, 1.48vw, 26px);
+  }
+  .screen-main-v12 .screen-next-copy p {
+    font-size: clamp(10px, .8vw, 14px);
+    line-height: 1.22;
+  }
+  .screen-upcoming-section { margin-top: .2vh; margin-bottom: .25vh; }
+  .screen-upcoming-heading { margin-bottom: .3vh; }
+  .screen-upcoming-day { min-height: 18vh; padding: .45vh .6vw; }
+  .screen-upcoming-list { gap: .25vh; margin-top: .3vh; }
+  .screen-upcoming-list .screen-upcoming-action {
+    font-size: clamp(8px, .58vw, 10px);
+    line-height: 1.16;
+  }
+  .screen-upcoming-list .screen-upcoming-description {
+    margin-top: .15vh;
+    font-size: clamp(7px, .5vw, 8.8px);
+    line-height: 1.16;
+  }
+}

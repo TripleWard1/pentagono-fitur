@@ -1,4 +1,4 @@
-# Pentágono Urbano — FITUR 2027
+# Pentágono Urbano - FITUR 2027
 
 Aplicação Next.js para coordenar o calendário de ações dos cinco municípios do Pentágono Urbano na FITUR 2027.
 
@@ -67,10 +67,10 @@ No projeto Firebase, abre **Firestore Database → Rules**, substitui as regras 
 
 O modelo de dados é criado automaticamente pela app à medida que as reservas são feitas; não precisas de criar coleções manualmente. A app usa:
 
-- `reservations` — os dados de cada ação;
-- `slotLocksV2` — bloqueios transacionais do próprio horário e do bloco seguinte para arrumação;
-- `system/slotLockSchema` — versão do esquema de bloqueios, com migração automática dos agendamentos existentes. A primeira abertura depois desta atualização migra os bloqueios dentro de uma transação; mantém a página aberta até surgir “Sincronizado”.
-- `dailyCounters` — contagem transacional para o limite diário por município.
+- `reservations` - os dados de cada ação;
+- `slotLocksV2` - bloqueios transacionais do próprio horário e do bloco seguinte para arrumação;
+- `system/slotLockSchema` - versão do esquema de bloqueios, com migração automática dos agendamentos existentes. A primeira abertura depois desta atualização migra os bloqueios dentro de uma transação; mantém a página aberta até surgir “Sincronizado”.
+- `dailyCounters` - contagem transacional para o limite diário por município.
 
 ### 5. Testar localmente
 
@@ -116,7 +116,7 @@ Esta versão define o ícone Apple explicitamente no `head` e inclui também `ap
 
 Depois de publicar:
 1. No iPhone, remove o atalho antigo do ecrã principal (manter premido → Remover marcador/apagar app, consoante a versão do iOS).
-2. Abre o endereço diretamente na app **Safari** — não a partir do browser interno de outra app.
+2. Abre o endereço diretamente na app **Safari** - não a partir do browser interno de outra app.
 3. Confirma que `https://pentagono-fitur.vercel.app/apple-touch-icon-pentagono-v9.png` mostra o símbolo correto.
 4. No Safari, Partilhar → Adicionar ao ecrã principal → Adicionar.
 5. Se ainda aparecer o ícone anterior, vai a Definições → Apps → Safari → Limpar histórico e dados dos sites (o texto pode variar conforme o iOS), abre novamente o site e repete.
@@ -131,7 +131,7 @@ Esta versão declara explicitamente `icons.apple` na API de Metadata do Next.js 
 Após publicar, confirma que o deployment está associado ao domínio Production; abre diretamente `/apple-touch-icon-pentagono-v10.png`, apaga o atalho antigo do iPhone e volta a adicioná-lo pelo Safari. Não é necessário alterar as variáveis Firebase.
 
 
-## Versão V11 — logótipos e ecrã do stand
+## Versão V11 - logótipos e ecrã do stand
 
 - Todos os cinco municípios usam agora os respetivos URLs de logótipo fornecidos.
 - O seletor do município apresenta logótipos maiores e com fundo transparente.
@@ -141,7 +141,7 @@ Após publicar, confirma que o deployment está associado ao domínio Production
 - As atividades do dia em destaque são divididas em páginas de quatro quando necessário; os próximos dias aparecem em pré-visualizações secundárias para manter o foco no dia atual.
 
 
-## V12 — hierarquia do ecrã público
+## V12 - hierarquia do ecrã público
 
 - O URL principal da apresentação é `/agenda`. A rota antiga `/ecran` redireciona para `/agenda` para preservar ligações existentes.
 - Durante os dias da FITUR, o cabeçalho «Hoje no Pentágono» é usado apenas para o dia real do evento. Antes da feira, o primeiro dia surge como abertura da agenda.
@@ -150,7 +150,7 @@ Após publicar, confirma que o deployment está associado ao domínio Production
 - Logótipos horizontais de Braga, Guimarães e Famalicão recebem ampliação ótica para equilibrar a sua presença face aos logótipos mais verticais.
 
 
-## V13 — texto completo, pré-visualização e logótipos
+## V13 - texto completo, pré-visualização e logótipos
 
 - As descrições dos cartões da agenda não são truncadas. Se o dia tiver descrições longas, a apresentação reduz para duas atividades por página e utiliza cartões mais largos para melhorar a leitura.
 - A faixa “Continua a descobrir” passa a mostrar também a descrição completa das duas primeiras ações de cada dia futuro, com cartões mais altos.
@@ -159,7 +159,7 @@ Após publicar, confirma que o deployment está associado ao domínio Production
 - Na página principal de gestão (não na rota `/agenda`), os logótipos horizontais de Braga, Guimarães e Famalicão foram ampliados ligeiramente para equilibrar a presença visual.
 
 
-## V14 — ajuste das cápsulas do dia em destaque
+## V14 - ajuste das cápsulas do dia em destaque
 
 - Revertido o comportamento que trocava duas atividades longas por cartões de largura total.
 - A agenda principal volta a apresentar até quatro atividades por página, em grelha 2x2, mantendo as descrições com quebra de linha e sem limite artificial de linhas.
@@ -167,7 +167,7 @@ Após publicar, confirma que o deployment está associado ao domínio Production
 - A secção de pré-visualização dos próximos dias permanece inalterada.
 
 
-## V16 — Ecrã focado na agenda do dia
+## V16 - Ecrã focado na agenda do dia
 
 - Removida a secção visual “CONTINUA A DESCOBRIR / Nos próximos dias” do ecrã `/agenda`.
 - Mantidos os restantes componentes, incluindo “PRÓXIMA AÇÃO”, os cartões do dia, logótipos, identidade visual e integração Firebase.

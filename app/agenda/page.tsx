@@ -129,7 +129,7 @@ export default function StandAgendaScreen() {
       <div className="screen-kicker"><Tv2 size={16} /> PROGRAMAÇÃO DO STAND <span className="screen-kicker-dot" /> CINCO MUNICÍPIOS, UM DESTINO</div>
       <div className="screen-title-row screen-title-row-v12">
         <div><p>{eyebrowText}</p><h1>{mainTitle}</h1><span className="screen-focus-note">{programmeFinished ? "Obrigado por acompanhar o Pentágono Urbano" : inFiturWeek ? "Programação do dia · Atualizada em tempo real" : "Programação do primeiro dia · Atualizada em tempo real"}</span></div>
-        <div className="screen-date-stamp"><CalendarDays size={22} /><span>19—24<strong>JAN 2027</strong></span></div>
+        <div className="screen-date-stamp"><CalendarDays size={22} /><span>19-24<strong>JAN 2027</strong></span></div>
       </div>
 
       <section className="screen-next-action" aria-live="polite" aria-label="Próxima ação">
@@ -139,7 +139,7 @@ export default function StandAgendaScreen() {
           return <div className="screen-next-body" style={{ "--town": meta.color } as React.CSSProperties}>
             <img className="screen-next-watermark" src={meta.logo} alt="" aria-hidden="true" />
             <div className={`screen-next-logo screen-next-logo-${townSlug(meta.name)}`}><img src={meta.logo} alt={`Logótipo de ${meta.name}`} /><span>{meta.name}</span></div>
-            <div className="screen-next-copy"><div className="screen-next-time"><strong>{nextAction.timeSlot}</strong><span>— {endTime(nextAction.timeSlot)}</span><i /><small>{displayDate(nextAction)}</small></div><h2>{nextAction.actionName}</h2>{nextAction.notes?.trim() && <p><span>DESCRIÇÃO DA AÇÃO</span>{nextAction.notes}</p>}</div>
+            <div className="screen-next-copy"><div className="screen-next-time"><strong>{nextAction.timeSlot}</strong><span>- {endTime(nextAction.timeSlot)}</span><i /><small>{displayDate(nextAction)}</small></div><h2>{nextAction.actionName}</h2>{nextAction.notes?.trim() && <p><span>DESCRIÇÃO DA AÇÃO</span>{nextAction.notes}</p>}</div>
             <ArrowRight className="screen-next-arrow" size={28} />
           </div>;
         })() : <div className="screen-next-empty"><strong>{programmeFinished ? "Programa concluído" : "Ainda não há próximas ações marcadas"}</strong><span>{programmeFinished ? "Obrigado por visitar o Pentágono Urbano." : "As novas reservas aparecerão automaticamente neste ecrã."}</span></div>}

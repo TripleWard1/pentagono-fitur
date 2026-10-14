@@ -3,7 +3,7 @@ import type { MetadataRoute } from 'next';
 export default function manifest(): MetadataRoute.Manifest {
   return {
     id: '/',
-    name: 'Pentágono Urbano — FITUR 2027',
+    name: 'Pentágono Urbano - FITUR 2027',
     short_name: 'Pentágono FITUR',
     description: 'Coordenação das ações dos cinco municípios do Pentágono Urbano na FITUR 2027.',
     start_url: '/',

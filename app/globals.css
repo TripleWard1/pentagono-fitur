@@ -916,7 +916,7 @@ body::before {
   .screen-upcoming-watermark { right: 2%; width: 44%; }
 }
 
-/* V15 — fit the upcoming-day capsules without changing the main day's layout. */
+/* V15 - fit the upcoming-day capsules without changing the main day's layout. */
 @media (min-width: 751px) {
   .screen-main-v12 .screen-next-action { margin-bottom: .2vh; }
   .screen-main-v12 .screen-next-label { padding-top: .42vh; padding-bottom: .42vh; }
@@ -954,13 +954,13 @@ body::before {
 }
 
 
-/* V16 — keep the display focused on the current day's agenda only.
+/* V16 - keep the display focused on the current day's agenda only.
    With the future-days preview removed, let today's activity capsules use the freed space. */
 .screen-main-v12 .screen-activities-v12 { max-height: none; }
 
 
 /* =====================================================================
-   V17 — design polish. Layout is untouched: this layer only refines
+   V17 - design polish. Layout is untouched: this layer only refines
    typography, depth, radii, colour and motion on top of earlier rules.
    ===================================================================== */
 :root {
@@ -1145,7 +1145,7 @@ body { font-feature-settings: "tnum" 1, "cv11" 1; text-rendering: optimizeLegibi
 }
 
 /* =====================================================================
-   V18 — premium & immersive: pure white base (the Pentágono mark has a
+   V18 - premium & immersive: pure white base (the Pentágono mark has a
    white background), with the five brand colours as light, aura and detail.
    ===================================================================== */
 :root { --page: #ffffff; --surface: #ffffff; --surface-subtle: #f7f9f6; --line: #e1e7df; }
@@ -1240,7 +1240,7 @@ body, .app-shell { background: #fff; }
 .selected-summary, .page-heading { background: #fff; }
 
 /* =====================================================================
-   V19 — live now, countdown, QR, attract scene, stale-data state, /programa
+   V19 - live now, countdown, QR, attract scene, stale-data state, /programa
    ===================================================================== */
 .screen-connection.stale { color: #8a5a00; border-color: #f0d9a0; background: #fff9e8; }
 .screen-connection.stale i { background: #d59e00; }
@@ -1365,7 +1365,7 @@ body, .app-shell { background: #fff; }
 .pg-footer strong { width: 100%; margin-top: 4px; font-size: 10.5px; letter-spacing: .14em; color: #07281a; }
 
 
-/* V20 — time panels: always a solid brand-colour block with legible type, and compact
+/* V20 - time panels: always a solid brand-colour block with legible type, and compact
    chips on /programa (they no longer stretch with the activity text on phones). */
 .pg-card-time { background-color: var(--town); background-image: linear-gradient(165deg, var(--town), color-mix(in srgb, var(--town) 70%, #000)); }
 .pg-card { align-items: start; }

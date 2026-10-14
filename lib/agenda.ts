@@ -66,7 +66,7 @@ export function liveProgress(item: Reservation, now: Date) {
   return Math.min(1, Math.max(0, (now.getTime() - start) / (SLOT_MINUTES * 60_000)));
 }
 
-/** "en 12 min", "en 2 h 05 min", "en 3 días" — used for the countdown. */
+/** "en 12 min", "en 2 h 05 min", "en 3 días" - used for the countdown. */
 export function formatIn(ms: number) {
   if (ms <= 0) return "ahora";
   const totalMin = Math.ceil(ms / 60_000);

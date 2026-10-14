@@ -148,3 +148,12 @@ Após publicar, confirma que o deployment está associado ao domínio Production
 - As atividades do dia em destaque são a zona principal. Os próximos dias aparecem numa faixa secundária, mais discreta, com logótipo, primeiro horário e indicação do número de ações reservadas.
 - Se um dia tiver mais de quatro atividades, o bloco principal roda entre páginas desse dia, sem trocar o foco para outro dia.
 - Logótipos horizontais de Braga, Guimarães e Famalicão recebem ampliação ótica para equilibrar a sua presença face aos logótipos mais verticais.
+
+
+## V13 — texto completo, pré-visualização e logótipos
+
+- As descrições dos cartões da agenda não são truncadas. Se o dia tiver descrições longas, a apresentação reduz para duas atividades por página e utiliza cartões mais largos para melhorar a leitura.
+- A faixa “Continua a descobrir” passa a mostrar também a descrição completa das duas primeiras ações de cada dia futuro, com cartões mais altos.
+- A cápsula “Próxima Ação” foi ligeiramente compactada para libertar espaço vertical; a área principal das atividades ganhou um pouco de altura.
+- As marcas de água municipais foram deslocadas para a esquerda para evitar que os logótipos fiquem encostados/cortados na extremidade direita.
+- Na página principal de gestão (não na rota `/agenda`), os logótipos horizontais de Braga, Guimarães e Famalicão foram ampliados ligeiramente para equilibrar a presença visual.

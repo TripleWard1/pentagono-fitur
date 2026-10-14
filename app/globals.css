@@ -835,3 +835,83 @@ body::before {
 .screen-upcoming-list { position: relative; z-index: 1; display: flex; flex-direction: column; gap: 2px; margin-top: .35vh; }
 .screen-upcoming-list .screen-upcoming-first { margin-top: 0; }
 .screen-upcoming-list .screen-upcoming-first span { -webkit-line-clamp: 1; }
+
+/* V13: descriptions stay fully visible in the agenda capsules. */
+.screen-main-v12 .screen-next-action { margin-bottom: .45vh; }
+.screen-main-v12 .screen-next-body { min-height: clamp(84px, 10.2vh, 124px); padding-top: .65vh; padding-bottom: .65vh; }
+.screen-main-v12 .screen-next-logo img { width: clamp(84px, 7.4vw, 128px); height: clamp(58px, 7vh, 82px); }
+.screen-next-copy p {
+  display: block;
+  -webkit-line-clamp: unset;
+  -webkit-box-orient: initial;
+  overflow: visible;
+  overflow-wrap: anywhere;
+  line-height: 1.28;
+}
+.screen-activities-v12 { max-height: 35vh; }
+.screen-activities-v12 .screen-activity-v11 { min-height: 0; }
+.screen-activity-description {
+  display: block;
+  -webkit-line-clamp: unset;
+  -webkit-box-orient: initial;
+  overflow: visible;
+  overflow-wrap: anywhere;
+  line-height: 1.23 !important;
+  font-size: clamp(8.5px, .66vw, 11.5px) !important;
+  margin-top: .28vh !important;
+}
+.screen-activity-responsible { margin-top: .25vh; }
+
+/* Future-day cards are a little taller and include the complete description of each previewed action. */
+.screen-upcoming-section { margin: .35vh 0 .45vh; }
+.screen-upcoming-heading { margin-bottom: .55vh; }
+.screen-upcoming-day { min-height: 16.5vh; padding: .7vh .65vw; }
+.screen-upcoming-list { gap: .42vh; margin-top: .5vh; }
+.screen-upcoming-first { gap: .38vw; margin-top: 0; }
+.screen-upcoming-copy { flex: 1; min-width: 0; }
+.screen-upcoming-list .screen-upcoming-action {
+  display: block;
+  color: #405047;
+  font-size: clamp(8px, .61vw, 10.5px);
+  font-weight: 700;
+  line-height: 1.2;
+  overflow-wrap: anywhere;
+  white-space: normal;
+}
+.screen-upcoming-list .screen-upcoming-description {
+  display: block;
+  margin: .22vh 0 0;
+  padding-left: 5px;
+  border-left: 2px solid color-mix(in srgb, var(--town) 60%, white);
+  color: #647168;
+  font-size: clamp(7.5px, .53vw, 9.2px);
+  line-height: 1.2;
+  overflow: visible;
+  overflow-wrap: anywhere;
+  white-space: normal;
+}
+.screen-upcoming-list .screen-upcoming-first span { -webkit-line-clamp: unset; overflow: visible; }
+
+/* Shift oversized watermark logos away from the right edge so their artwork is not clipped. */
+.screen-next-watermark { right: 6%; width: clamp(185px, 22vw, 370px); }
+.screen-activity-watermark { right: 3.5%; width: 31%; object-position: center right; }
+.screen-upcoming-watermark { right: 3%; width: 48%; }
+
+/* Main booking page only: slightly larger optical size for the three horizontal logos. */
+.municipality-logo-braga { transform: scale(1.25); }
+.municipality-logo-guimaraes { transform: scale(1.2); }
+.municipality-logo-famalicao { transform: scale(1.22); }
+@media (max-width: 750px) {
+  .screen-next-body { min-height: 0; }
+  .screen-next-copy p { font-size: 12px; }
+  .screen-activity-description { font-size: 11px !important; line-height: 1.3 !important; }
+  .screen-upcoming-day { min-height: 0; }
+  .screen-upcoming-list .screen-upcoming-action { font-size: 9px; }
+  .screen-upcoming-list .screen-upcoming-description { font-size: 8px; line-height: 1.25; }
+  .municipality-logo-braga { transform: scale(1.13); }
+  .municipality-logo-guimaraes { transform: scale(1.12); }
+  .municipality-logo-famalicao { transform: scale(1.13); }
+  .screen-next-watermark { right: 5%; width: 180px; }
+  .screen-activity-watermark { right: 3%; width: 38%; }
+  .screen-upcoming-watermark { right: 2%; width: 44%; }
+}

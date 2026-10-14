@@ -96,8 +96,10 @@ export default function StandAgendaScreen() {
   const focusItems = useMemo(() => reservations
     .filter((item) => item.dayIndex === focusDayIndex)
     .sort((a, b) => TIMES.indexOf(a.timeSlot) - TIMES.indexOf(b.timeSlot)), [reservations, focusDayIndex]);
-  // The main screen is reserved for the focus day only; future dates appear in a quieter preview strip.
-  const focusPages = useMemo(() => splitIntoPages(focusItems, 4), [focusItems]);
+  // Keep four actions per screen when descriptions are short. Long descriptions use two wider capsules
+  // so the full text remains visible without being clipped by the card.
+  const focusPageSize = focusItems.some((item) => (item.notes?.trim().length || 0) > 110) ? 2 : 4;
+  const focusPages = useMemo(() => splitIntoPages(focusItems, focusPageSize), [focusItems, focusPageSize]);
   const currentItems = focusPages[pageIndex] || focusPages[0] || [];
 
   const upcomingDays: DayPreview[] = useMemo(() => DAYS
@@ -173,7 +175,7 @@ export default function StandAgendaScreen() {
             return <article className="screen-upcoming-day" key={day.dayIndex} style={{ "--town": meta.color } as React.CSSProperties}>
               <img className="screen-upcoming-watermark" src={meta.logo} alt="" aria-hidden="true" />
               <div className="screen-upcoming-top"><img src={meta.logo} alt="" /><div><strong>{DAYS[day.dayIndex].compact}</strong><span>{day.items.length} {day.items.length === 1 ? "ação marcada" : "ações marcadas"}</span></div><ChevronRight size={15} /></div>
-              <div className="screen-upcoming-list">{day.items.slice(0, 2).map((item) => <div className="screen-upcoming-first" key={item.id}><time>{item.timeSlot}</time><span>{item.actionName}</span></div>)}</div>
+              <div className="screen-upcoming-list">{day.items.slice(0, 2).map((item) => <div className="screen-upcoming-first" key={item.id}><time>{item.timeSlot}</time><div className="screen-upcoming-copy"><span className="screen-upcoming-action">{item.actionName}</span>{item.notes?.trim() && <p className="screen-upcoming-description">{item.notes}</p>}</div></div>)}</div>
               {day.items.length > 2 && <small className="screen-upcoming-more">+ {day.items.length - 2} {day.items.length - 2 === 1 ? "atividade" : "atividades"} no programa</small>}
             </article>;
           })}

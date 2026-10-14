@@ -327,7 +327,7 @@ export default function Home() {
               const count = reservations.filter((r) => r.municipality === m.name).length;
               const selected = municipality === m.name;
               return <button key={m.name} type="button" aria-pressed={selected} className={`municipality-option ${selected ? "is-selected" : ""}`} style={{ "--muni": m.color, "--muni-pale": m.pale } as React.CSSProperties} onClick={() => setMunicipality(m.name)}>
-                {m.logo ? <img className={`municipality-logo ${m.name === "Braga" ? "municipality-logo-braga" : ""}`} src={m.logo} alt={`Logótipo do Município de ${m.name}`} loading="lazy" /> : <span className="municipality-color" />}
+                {m.logo ? <img className={`municipality-logo ${m.name === "Braga" ? "municipality-logo-braga" : m.name === "Guimarães" ? "municipality-logo-guimaraes" : m.name === "Vila Nova de Famalicão" ? "municipality-logo-famalicao" : ""}`} src={m.logo} alt={`Logótipo do Município de ${m.name}`} loading="lazy" /> : <span className="municipality-color" />}
                 <span className="municipality-option-name">{m.name}</span>
                 <span className="municipality-res-count">{count}</span>
                 {selected && <span className="selected-check"><CheckCircle2 size={14} /></span>}

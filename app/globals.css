@@ -916,7 +916,7 @@ body::before {
   .screen-upcoming-watermark { right: 2%; width: 44%; }
 }
 
-/* V15 — fit the upcoming-day capsules without changing the main day's layout. */
+/* V15 - fit the upcoming-day capsules without changing the main day's layout. */
 @media (min-width: 751px) {
   .screen-main-v12 .screen-next-action { margin-bottom: .2vh; }
   .screen-main-v12 .screen-next-label { padding-top: .42vh; padding-bottom: .42vh; }

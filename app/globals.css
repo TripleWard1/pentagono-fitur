@@ -1143,3 +1143,97 @@ body { font-feature-settings: "tnum" 1, "cv11" 1; text-rendering: optimizeLegibi
   .screen-title-row h1 { -webkit-text-fill-color: initial; }
   .topbar { position: static; }
 }
+
+/* =====================================================================
+   V18 — premium & immersive: pure white base (the Pentágono mark has a
+   white background), with the five brand colours as light, aura and detail.
+   ===================================================================== */
+:root { --page: #ffffff; --surface: #ffffff; --surface-subtle: #f7f9f6; --line: #e1e7df; }
+html, body { background: #fff; }
+
+/* ---------- /agenda ---------- */
+.screen-app, .screen-app-v11 {
+  position: relative; isolation: isolate;
+  background:
+    radial-gradient(60vw 38vh at -6% -10%, rgba(8,116,67,.13), transparent 70%),
+    radial-gradient(46vw 34vh at 104% -8%, rgba(8,122,152,.13), transparent 70%),
+    radial-gradient(40vw 30vh at 104% 108%, rgba(223,20,39,.09), transparent 70%),
+    radial-gradient(44vw 32vh at -4% 108%, rgba(242,180,0,.14), transparent 70%),
+    #ffffff;
+}
+/* Fine pentagon-grid texture, barely visible, for depth */
+.screen-app::before {
+  content: ""; position: fixed; inset: 0; z-index: -1; pointer-events: none; opacity: .5;
+  background-image: radial-gradient(rgba(20,40,30,.07) 1px, transparent 1.2px); background-size: 26px 26px;
+  -webkit-mask-image: radial-gradient(ellipse at center, transparent 35%, #000 100%); mask-image: radial-gradient(ellipse at center, transparent 35%, #000 100%);
+}
+.screen-brand > img { filter: none; mix-blend-mode: multiply; }
+.screen-connection { background: #fff; }
+.screen-clock { background: linear-gradient(135deg, #0a2418 0%, #087443 100%); box-shadow: 0 8px 22px rgba(8,116,67,.32), inset 0 1px 0 rgba(255,255,255,.18); }
+.screen-ribbon { height: 8px; flex-basis: 8px; border-radius: 0 0 6px 6px; box-shadow: 0 6px 18px -4px rgba(8,116,67,.35); }
+
+/* Next action: deep, luminous "hero" card */
+.screen-next-action {
+  border-radius: 20px; background: #fff;
+  box-shadow: 0 1px 0 rgba(255,255,255,.9) inset, 0 4px 10px rgba(14,30,22,.06), 0 24px 56px -12px rgba(8,80,48,.28);
+  outline: 1px solid rgba(8,116,67,.14);
+}
+.screen-next-label {
+  background: linear-gradient(100deg, #07281a 0%, #0a5a36 48%, #087443 100%);
+  position: relative; overflow: hidden;
+}
+.screen-next-label::after {
+  content: ""; position: absolute; inset: 0; pointer-events: none;
+  background: linear-gradient(100deg, transparent 0 55%, rgba(242,180,0,.25) 70%, rgba(8,122,152,.3) 100%);
+}
+.screen-next-label > * { position: relative; z-index: 1; }
+.screen-next-body { background: linear-gradient(105deg, color-mix(in srgb, var(--town) 16%, #fff) 0%, #fff 55%, color-mix(in srgb, var(--town) 7%, #fff) 100%); }
+.screen-next-arrow { background: var(--town); color: #fff; opacity: 1; box-shadow: 0 8px 18px color-mix(in srgb, var(--town) 45%, transparent); }
+
+/* Activity cards: crisp white glass with a luminous brand-colour edge */
+.screen-activity-v11 {
+  background: linear-gradient(115deg, color-mix(in srgb, var(--town) 8%, #fff) 0%, #fff 48%, #fff 100%);
+  border-color: color-mix(in srgb, var(--town) 16%, #e8ede6);
+  box-shadow: 0 2px 4px rgba(14,30,22,.04), 0 18px 40px -14px color-mix(in srgb, var(--town) 38%, rgba(14,30,22,.2));
+}
+.screen-activity-v11::before { width: 9px; box-shadow: 4px 0 22px color-mix(in srgb, var(--town) 55%, transparent); }
+.screen-activity-time {
+  background: linear-gradient(165deg, color-mix(in srgb, var(--town) 94%, #000 0%) 0%, color-mix(in srgb, var(--town) 72%, #000) 100%);
+  box-shadow: 0 10px 22px -8px color-mix(in srgb, var(--town) 70%, transparent), inset 0 1px 0 rgba(255,255,255,.28);
+}
+.screen-activity-time strong { color: #fff; text-shadow: 0 2px 8px rgba(0,0,0,.18); }
+.screen-activity-time span { color: rgba(255,255,255,.88); }
+.screen-activity-time i { background: rgba(255,255,255,.95); color: color-mix(in srgb, var(--town) 70%, #000); box-shadow: none; }
+.screen-activity-watermark { opacity: .07; }
+.screen-activity-heading span { background: #fff; border: 1px solid #e1e7df; box-shadow: var(--shadow-sm); }
+.screen-focus-empty { background: #fff; }
+.screen-pagination > div span { background: #e6ebe4; }
+.screen-footer { background: transparent; }
+.screen-footer::before { height: 5px; box-shadow: 0 6px 16px -4px rgba(8,116,67,.3); }
+.screen-footer strong { color: #07281a; }
+
+/* ---------- booking page (/) ---------- */
+body, .app-shell { background: #fff; }
+.app-shell {
+  background:
+    radial-gradient(50vw 30vh at 0% 0%, rgba(8,116,67,.08), transparent 70%),
+    radial-gradient(40vw 28vh at 100% 0%, rgba(8,122,152,.08), transparent 70%),
+    #fff;
+}
+.topbar { background: rgba(255,255,255,.9); border-bottom: 1px solid #e6ebe4; }
+.brand-logo { mix-blend-mode: multiply; }
+.page-heading, .calendar-card, .calendar-card .calendar-toolbar, .schedule-toolbar, .reservation-list-panel, .app-footer { background: #fff; }
+.calendar-card { border-color: #e1e7df; box-shadow: 0 2px 4px rgba(14,30,22,.04), 0 24px 52px -20px rgba(8,80,48,.22); }
+.municipality-option { background: #fff; border-color: #e1e7df; }
+.municipality-option:hover { background: color-mix(in srgb, var(--muni) 6%, #fff); }
+.municipality-option.is-selected { background: color-mix(in srgb, var(--muni) 10%, #fff); }
+.day-tab { background: #fff; }
+.day-tab:hover { background: #f6f9f5; }
+.day-tab.active { background: color-mix(in srgb, var(--selected) 9%, #fff); }
+.button-primary { background: linear-gradient(135deg, #0a5a36, #087443); }
+
+/* Yellow (Guimarães) needs dark type for contrast on its time panel. */
+.screen-activity-v11:has(.screen-town-guimaraes) .screen-activity-time strong { color: #2b2100; text-shadow: none; }
+.screen-activity-v11:has(.screen-town-guimaraes) .screen-activity-time span { color: rgba(43,33,0,.8); }
+.screen-activity-v11:has(.screen-town-guimaraes) .screen-activity-time i { background: #2b2100; color: #ffd45e; }
+.selected-summary, .page-heading { background: #fff; }

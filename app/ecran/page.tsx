@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { CalendarDays, Clock3, Tv2, Wifi, WifiOff } from "lucide-react";
+import { CalendarDays, Clock3, Tv2, Wifi, WifiOff, ArrowRight, Sparkles } from "lucide-react";
 import {
   firebaseConfigured, ensureAnonymousSignIn, subscribeReservations, LOCAL_STORAGE_KEY,
 } from "@/lib/firebase";
@@ -16,17 +16,31 @@ const DAYS = [
   { dow: "DOMINGO", date: "24", short: "Dom. 24" },
 ];
 const TIMES = Array.from({ length: 18 }, (_, i) => `${String(10 + Math.floor(i / 2)).padStart(2, "0")}:${i % 2 ? "30" : "00"}`);
-type TownMeta = { name: string; color: string; logo?: string };
+type TownMeta = { name: string; color: string; logo: string };
 const MUNICIPALITIES: TownMeta[] = [
   { name: "Braga", color: "#087443", logo: "https://i.imgur.com/2MEyi4w.png" },
-  { name: "Guimarães", color: "#f2b400" },
-  { name: "Vila Nova de Famalicão", color: "#df1427" },
-  { name: "Viana do Castelo", color: "#087a98" },
+  { name: "Guimarães", color: "#f2b400", logo: "https://i.imgur.com/zMV4mih.png" },
+  { name: "Vila Nova de Famalicão", color: "#df1427", logo: "https://i.imgur.com/6Kt2Xy7.png" },
+  { name: "Viana do Castelo", color: "#087a98", logo: "https://i.imgur.com/xNrj977.png" },
   { name: "Barcelos", color: "#55595c", logo: "https://i.imgur.com/e5ntTlW.png" },
 ];
 const pentagonoLogo = "/pentagono-logo-original.png";
 function getMeta(name: string) { return MUNICIPALITIES.find((item) => item.name === name) || MUNICIPALITIES[0]; }
+function townSlug(name: string) {
+  if (name === "Guimarães") return "guimaraes";
+  if (name === "Vila Nova de Famalicão") return "famalicao";
+  if (name === "Viana do Castelo") return "viana";
+  return name.toLowerCase();
+}
 function endTime(time: string) { const index = TIMES.indexOf(time); return index >= 0 ? TIMES[index + 1] || "19:00" : "19:00"; }
+function startDateTime(item: Reservation) {
+  const [hours, minutes] = item.timeSlot.split(":").map(Number);
+  return new Date(2027, 0, 19 + item.dayIndex, hours || 0, minutes || 0, 0, 0);
+}
+function displayDate(item: Reservation) {
+  const day = DAYS[item.dayIndex];
+  return day ? `${day.dow}, ${day.date} JAN 2027` : "FITUR 2027";
+}
 
 export default function StandScreen() {
   const [reservations, setReservations] = useState<Reservation[]>([]);
@@ -36,7 +50,7 @@ export default function StandScreen() {
 
   useEffect(() => {
     const updateTime = () => setNow(new Date());
-    const clock = window.setInterval(updateTime, 30_000);
+    const clock = window.setInterval(updateTime, 15_000);
     if (!firebaseConfigured) {
       try {
         const local = localStorage.getItem(LOCAL_STORAGE_KEY);
@@ -45,7 +59,7 @@ export default function StandScreen() {
       setSync("local");
       const onStorage = (event: StorageEvent) => {
         if (event.key === LOCAL_STORAGE_KEY && event.newValue) {
-          try { setReservations(JSON.parse(event.newValue) as Reservation[]); } catch { /* Ignore invalid payloads. */ }
+          try { setReservations(JSON.parse(event.newValue) as Reservation[]); } catch { /* Ignora dados inválidos. */ }
         }
       };
       window.addEventListener("storage", onStorage);
@@ -67,11 +81,18 @@ export default function StandScreen() {
         .sort((a, b) => TIMES.indexOf(a.timeSlot) - TIMES.indexOf(b.timeSlot));
       if (!list.length) return;
       const chunks: Reservation[][] = [];
-      for (let i = 0; i < list.length; i += 8) chunks.push(list.slice(i, i + 8));
+      // Six cards per screen gives enough room for larger logos and descriptions.
+      for (let i = 0; i < list.length; i += 6) chunks.push(list.slice(i, i + 6));
       chunks.forEach((items, chunkIndex) => result.push({ dayIndex, items, part: chunkIndex + 1, parts: chunks.length }));
     });
     return result;
   }, [reservations]);
+
+  const nextAction = useMemo(() => reservations
+    .map((item) => ({ item, start: startDateTime(item) }))
+    .filter(({ start }) => start.getTime() >= now.getTime())
+    .sort((a, b) => a.start.getTime() - b.start.getTime())[0]?.item || null,
+  [reservations, now]);
 
   useEffect(() => {
     setPageIndex((current) => pages.length ? current % pages.length : 0);
@@ -83,30 +104,47 @@ export default function StandScreen() {
   const currentPage = pages[pageIndex];
   const currentDay = currentPage ? DAYS[currentPage.dayIndex] : null;
   const formattedTime = now.toLocaleTimeString("pt-PT", { hour: "2-digit", minute: "2-digit" });
+  const eventEnd = new Date(2027, 0, 24, 19, 0, 0, 0);
+  const programmeFinished = now.getTime() > eventEnd.getTime();
 
-  return <main className="screen-app">
+  return <main className="screen-app screen-app-v11">
     <header className="screen-header">
       <div className="screen-brand"><img src={pentagonoLogo} alt="Pentágono Urbano" /><span className="screen-divider" /><div><strong>PENTÁGONO URBANO</strong><small>FITUR 2027 · IFEMA MADRID</small></div></div>
       <div className="screen-status"><span className={`screen-connection ${sync}`}><i />{sync === "online" ? <><Wifi size={17} /> Atualizado em tempo real</> : sync === "connecting" ? <>A ligar à agenda…</> : sync === "local" ? <><WifiOff size={17} /> Pré-visualização local</> : <><WifiOff size={17} /> Sem ligação à agenda</>}</span><span className="screen-clock"><Clock3 size={17} />{formattedTime}</span></div>
     </header>
     <div className="screen-ribbon" aria-hidden="true"><i /><i /><i /><i /><i /></div>
-    <section className="screen-main">
-      <div className="screen-kicker"><Tv2 size={16} /> PROGRAMAÇÃO DO STAND</div>
+    <section className="screen-main screen-main-v11">
+      <div className="screen-kicker"><Tv2 size={16} /> PROGRAMAÇÃO DO STAND <span className="screen-kicker-dot" /> CINCO MUNICÍPIOS, UM DESTINO</div>
       {currentPage && currentDay ? <>
-        <div className="screen-title-row"><div><p>{currentDay.dow} · {currentDay.date} DE JANEIRO</p><h1>Hoje no Pentágono</h1></div><div className="screen-date-stamp"><CalendarDays size={22} /><span>19-24<strong>JAN 2027</strong></span></div></div>
+        <div className="screen-title-row"><div><p>{currentDay.dow} · {currentDay.date} DE JANEIRO</p><h1>Hoje no Pentágono</h1></div><div className="screen-date-stamp"><CalendarDays size={22} /><span>19—24<strong>JAN 2027</strong></span></div></div>
+
+        <section className="screen-next-action" aria-live="polite" aria-label="Próxima ação">
+          <div className="screen-next-label"><Sparkles size={16} /> <span>PRÓXIMA AÇÃO</span><i /></div>
+          {nextAction ? (() => {
+            const meta = getMeta(nextAction.municipality);
+            return <div className="screen-next-body" style={{ "--town": meta.color } as React.CSSProperties}>
+              <img className="screen-next-watermark" src={meta.logo} alt="" aria-hidden="true" />
+              <div className={`screen-next-logo screen-next-logo-${townSlug(meta.name)}`}><img src={meta.logo} alt={`Logótipo de ${meta.name}`} /><span>{meta.name}</span></div>
+              <div className="screen-next-copy"><div className="screen-next-time"><strong>{nextAction.timeSlot}</strong><span>— {endTime(nextAction.timeSlot)}</span><i /><small>{displayDate(nextAction)}</small></div><h2>{nextAction.actionName}</h2>{nextAction.notes?.trim() && <p><span>DESCRIÇÃO DA AÇÃO</span>{nextAction.notes}</p>}</div>
+              <ArrowRight className="screen-next-arrow" size={28} />
+            </div>;
+          })() : <div className="screen-next-empty"><strong>{programmeFinished ? "Programa concluído" : "Ainda não há próximas ações marcadas"}</strong><span>{programmeFinished ? "Obrigado por visitar o Pentágono Urbano." : "As novas reservas aparecerão automaticamente neste ecrã."}</span></div>}
+        </section>
+
         <div className="screen-activity-heading"><strong>Agenda de atividades</strong><span>{currentPage.items.length} {currentPage.items.length === 1 ? "atividade" : "atividades"}{currentPage.parts > 1 ? ` · Página ${currentPage.part} de ${currentPage.parts}` : ""}</span></div>
         <div className="screen-activities" style={{ gridTemplateColumns: currentPage.items.length <= 2 ? "minmax(0, 1fr)" : "repeat(2, minmax(0, 1fr))", gridTemplateRows: `repeat(${Math.ceil(currentPage.items.length / (currentPage.items.length <= 2 ? 1 : 2))}, minmax(0, 1fr))` }}>
           {currentPage.items.map((item) => {
             const meta = getMeta(item.municipality);
-            return <article className="screen-activity" key={item.id} style={{ "--town": meta.color } as React.CSSProperties}>
-              <div className="screen-activity-time"><strong>{item.timeSlot}</strong><span>ATÉ {endTime(item.timeSlot)}</span></div>
-              <div className="screen-activity-main"><div className={`screen-town ${meta.logo ? "screen-town-has-logo" : ""}`}>{meta.logo && <img src={meta.logo} alt={`Logótipo do Município de ${item.municipality}`} loading="eager" />}<span>{item.municipality}</span></div><h2>{item.actionName}</h2>{item.responsible && <p>{item.responsible}</p>}</div>
+            return <article className="screen-activity screen-activity-v11" key={item.id} style={{ "--town": meta.color } as React.CSSProperties}>
+              <img className="screen-activity-watermark" src={meta.logo} alt="" aria-hidden="true" />
+              <div className="screen-activity-time"><strong>{item.timeSlot}</strong><span>ATÉ {endTime(item.timeSlot)}</span><i>FITUR 2027</i></div>
+              <div className="screen-activity-main"><div className={`screen-town screen-town-${townSlug(item.municipality)}`}><img src={meta.logo} alt={`Logótipo do Município de ${item.municipality}`} loading="eager" /><span>{item.municipality}</span></div><h2>{item.actionName}</h2>{item.notes?.trim() && <p className="screen-activity-description"><span>DESCRIÇÃO</span>{item.notes}</p>}{item.responsible?.trim() && <small className="screen-activity-responsible">Com {item.responsible}</small>}</div>
               <div className="screen-activity-marker" aria-hidden="true" />
             </article>;
           })}
         </div>
         <div className="screen-pagination"><div>{DAYS.map((day, index) => <span key={day.date} className={currentPage.dayIndex === index ? "active" : ""} />)}</div><p>Consulte a equipa do município para mais informações.</p><small>ATUALIZAÇÃO AUTOMÁTICA</small></div>
-      </> : <div className="screen-empty"><img src={pentagonoLogo} alt="Pentágono Urbano" /><h1>As próximas experiências começam aqui.</h1><p>Estamos a preparar a programação do Pentágono Urbano na FITUR 2027.</p><div className="screen-empty-towns">{MUNICIPALITIES.map((town) => <span key={town.name} style={{ "--town": town.color } as React.CSSProperties}>{town.name}</span>)}</div></div>}
+      </> : <div className="screen-empty"><img src={pentagonoLogo} alt="Pentágono Urbano" /><h1>As próximas experiências começam aqui.</h1><p>Estamos a preparar a programação do Pentágono Urbano na FITUR 2027.</p><div className="screen-empty-towns screen-empty-logos">{MUNICIPALITIES.map((town) => <span key={town.name} style={{ "--town": town.color } as React.CSSProperties}><img src={town.logo} alt="" />{town.name}</span>)}</div></div>}
     </section>
     <footer className="screen-footer"><span>BRAGA <i /> GUIMARÃES <i /> VILA NOVA DE FAMALICÃO <i /> VIANA DO CASTELO <i /> BARCELOS</span><strong>UM TERRITÓRIO, CINCO MUNICÍPIOS</strong></footer>
   </main>;

@@ -28,9 +28,9 @@ type MunicipalityInfo = {
 
 const MUNICIPALITIES: MunicipalityInfo[] = [
   { name: "Braga", short: "Braga", color: "#087443", pale: "#d7eadc", contrast: "#ffffff", logo: "https://i.imgur.com/2MEyi4w.png" },
-  { name: "Guimarães", short: "Guimarães", color: "#f2b400", pale: "#ffefad", contrast: "#352800" },
-  { name: "Vila Nova de Famalicão", short: "Vila Nova de Famalicão", color: "#df1427", pale: "#fbdadd", contrast: "#ffffff" },
-  { name: "Viana do Castelo", short: "Viana do Castelo", color: "#087a98", pale: "#d7edf2", contrast: "#ffffff" },
+  { name: "Guimarães", short: "Guimarães", color: "#f2b400", pale: "#ffefad", contrast: "#352800", logo: "https://i.imgur.com/zMV4mih.png" },
+  { name: "Vila Nova de Famalicão", short: "Vila Nova de Famalicão", color: "#df1427", pale: "#fbdadd", contrast: "#ffffff", logo: "https://i.imgur.com/6Kt2Xy7.png" },
+  { name: "Viana do Castelo", short: "Viana do Castelo", color: "#087a98", pale: "#d7edf2", contrast: "#ffffff", logo: "https://i.imgur.com/xNrj977.png" },
   { name: "Barcelos", short: "Barcelos", color: "#55595c", pale: "#e0e3e3", contrast: "#ffffff", logo: "https://i.imgur.com/e5ntTlW.png" },
 ];
 const DAYS = [
@@ -311,12 +311,12 @@ export default function Home() {
   return (
     <main className="app-shell" style={{ "--selected": selectedMeta.color, "--selected-pale": selectedMeta.pale } as React.CSSProperties}>
       <header className="topbar">
-        <a className="brand" href="#main" aria-label="Pentágono Urbano - início">
+        <a className="brand" href="#main" aria-label="Pentágono Urbano — início">
           <span className="brand-logo-wrap"><img src={logoUrl} alt="Pentágono Urbano" className="brand-logo" /></span>
           <span className="brand-divider" />
           <span className="brand-app"><strong>FITUR 2027</strong><small>Gestão de horários</small></span>
         </a>
-        <div className="topbar-meta"><span className={`event-status sync-${syncStatus}`}><i /> {syncStatus === "online" ? "Sincronizado" : syncStatus === "connecting" ? "A ligar à Firebase…" : syncStatus === "error" ? "Erro de sincronização" : "Modo local"}</span><span className="topbar-separator" /><a className="screen-link" href="/ecran" target="_blank" rel="noreferrer">Ecrã do stand <ChevronRight size={13} /></a><span className="topbar-separator" /> <span>Madrid · 19-24 jan. 2027</span></div>
+        <div className="topbar-meta"><span className={`event-status sync-${syncStatus}`}><i /> {syncStatus === "online" ? "Sincronizado" : syncStatus === "connecting" ? "A ligar à Firebase…" : syncStatus === "error" ? "Erro de sincronização" : "Modo local"}</span><span className="topbar-separator" /><a className="screen-link" href="/ecran" target="_blank" rel="noreferrer">Ecrã do stand <ChevronRight size={13} /></a><span className="topbar-separator" /> <span>Madrid · 19—24 jan. 2027</span></div>
       </header>
 
       <div className="content-shell" id="main">
@@ -327,7 +327,7 @@ export default function Home() {
               const count = reservations.filter((r) => r.municipality === m.name).length;
               const selected = municipality === m.name;
               return <button key={m.name} type="button" aria-pressed={selected} className={`municipality-option ${selected ? "is-selected" : ""}`} style={{ "--muni": m.color, "--muni-pale": m.pale } as React.CSSProperties} onClick={() => setMunicipality(m.name)}>
-                {m.logo ? <img className="municipality-logo" src={m.logo} alt={`Logótipo do Município de ${m.name}`} loading="lazy" /> : <span className="municipality-color" />}
+                {m.logo ? <img className={`municipality-logo ${m.name === "Braga" ? "municipality-logo-braga" : ""}`} src={m.logo} alt={`Logótipo do Município de ${m.name}`} loading="lazy" /> : <span className="municipality-color" />}
                 <span className="municipality-option-name">{m.name}</span>
                 <span className="municipality-res-count">{count}</span>
                 {selected && <span className="selected-check"><CheckCircle2 size={14} /></span>}
@@ -425,7 +425,7 @@ export default function Home() {
                   <td className="date-cell"><strong>{DAYS[r.dayIndex].date} JAN</strong><small>{r.timeSlot}–{getEndTime(r.timeSlot)}</small></td>
                   <td><span className="table-municipality"><i style={{ background: meta.color }} />{r.municipality}</span></td>
                   <td><strong className="table-action-name">{r.actionName}</strong>{r.notes && <small className="table-note">{r.notes}</small>}</td>
-                  <td><span className="table-responsible">{r.responsible || "-"}</span><small className="table-contact">{r.contact || "Sem contacto"}</small></td>
+                  <td><span className="table-responsible">{r.responsible || "—"}</span><small className="table-contact">{r.contact || "Sem contacto"}</small></td>
                   <td><div className="row-actions">{r.municipality === municipality && <><button type="button" aria-label={`Editar ${r.actionName}`} title="Editar" onClick={() => openEdit(r)}><Edit3 size={14} /></button><button type="button" aria-label={`Remover ${r.actionName}`} title="Remover" onClick={() => removeReservation(r)}><Trash2 size={14} /></button></>}</div></td>
                 </tr>;})}
               </tbody></table></div>
@@ -446,8 +446,8 @@ export default function Home() {
             <label htmlFor="action-name">Nome da ação <span className="required">*</span></label>
             <input id="action-name" autoFocus required maxLength={120} value={actionName} onChange={(e) => setActionName(e.target.value)} placeholder="Ex.: Prova de produtos locais" />
             <div className="form-row"><div><label htmlFor="responsible">Técnico responsável</label><input id="responsible" maxLength={100} value={responsible} onChange={(e) => setResponsible(e.target.value)} placeholder="Nome completo" /></div><div><label htmlFor="contact">Contacto</label><input id="contact" maxLength={120} value={contact} onChange={(e) => setContact(e.target.value)} placeholder="Email ou telefone" /></div></div>
-            <label htmlFor="notes">Notas <span className="optional">OPCIONAL</span></label>
-            <textarea id="notes" maxLength={500} rows={3} value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Necessidades técnicas ou outras informações" />
+            <label htmlFor="notes">Descrição da ação <span className="optional">OPCIONAL · VISÍVEL NO ECRÃ</span></label>
+            <textarea id="notes" maxLength={500} rows={3} value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Descreve brevemente a atividade para aparecer no ecrã do stand" />
             {!editing && <div className="modal-warning"><Info size={15} /><span>O bloco seguinte fica reservado para 30 min de arrumação. A próxima atividade pode começar uma hora depois.</span></div>}
             <div className="modal-buttons"><button className="button-secondary" type="button" onClick={closeModal}>Cancelar</button><button className="button-primary" type="submit" disabled={saving}>{saving ? "A guardar…" : editing ? "Guardar alterações" : "Confirmar reserva"}<ChevronRight size={16} /></button></div>
           </form>

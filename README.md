@@ -1,4 +1,4 @@
-# Pentágono Urbano - FITUR 2027
+# Pentágono Urbano — FITUR 2027
 
 Aplicação Next.js para coordenar o calendário de ações dos cinco municípios do Pentágono Urbano na FITUR 2027.
 
@@ -8,9 +8,9 @@ Aplicação Next.js para coordenar o calendário de ações dos cinco município
 - Limite de 3 reservas por município/dia; cada atividade ocupa 30 minutos e bloqueia apenas os 30 minutos seguintes para arrumação (ex.: reserva às 16:00 bloqueia 16:30; a próxima atividade pode começar às 17:00).
 - Reservas partilhadas em tempo real através do Cloud Firestore, quando configurado.
 - Modo local com `localStorage` para pré-visualização sem Firebase.
-- Ecrã público para a televisão do stand em `/ecran`, que roda automaticamente entre dias com atividades.
+- Ecrã público para a televisão do stand em `/ecran`, com área dinâmica «Próxima Ação», descrições e logótipos grandes em cada cartão, e rotação automática de seis atividades por página.
 - Símbolo multicolorido do Pentágono Urbano como favicon e ícone de instalação em dispositivos móveis, com novos nomes de ficheiro para evitar cache dos ícones antigos.
-- Logótipos experimentais de Braga e Barcelos carregados dos URLs fornecidos, ampliados e sem fundo branco aplicado por CSS.
+- Logótipos dos cinco municípios carregados dos URLs fornecidos, ampliados no seletor e especialmente no ecrã de apresentação, sem fundo branco artificial.
 - Verdana como fonte principal; campos de formulário com 16 px em mobile para evitar zoom automático do Safari.
 
 ## Executar localmente
@@ -67,10 +67,10 @@ No projeto Firebase, abre **Firestore Database → Rules**, substitui as regras 
 
 O modelo de dados é criado automaticamente pela app à medida que as reservas são feitas; não precisas de criar coleções manualmente. A app usa:
 
-- `reservations` - os dados de cada ação;
-- `slotLocksV2` - bloqueios transacionais do próprio horário e do bloco seguinte para arrumação;
-- `system/slotLockSchema` - versão do esquema de bloqueios, com migração automática dos agendamentos existentes. A primeira abertura depois desta atualização migra os bloqueios dentro de uma transação; mantém a página aberta até surgir “Sincronizado”.
-- `dailyCounters` - contagem transacional para o limite diário por município.
+- `reservations` — os dados de cada ação;
+- `slotLocksV2` — bloqueios transacionais do próprio horário e do bloco seguinte para arrumação;
+- `system/slotLockSchema` — versão do esquema de bloqueios, com migração automática dos agendamentos existentes. A primeira abertura depois desta atualização migra os bloqueios dentro de uma transação; mantém a página aberta até surgir “Sincronizado”.
+- `dailyCounters` — contagem transacional para o limite diário por município.
 
 ### 5. Testar localmente
 
@@ -103,7 +103,7 @@ Antes de divulgar o endereço publicamente ou utilizar o calendário como regist
 
 ## Logótipos dos municípios
 
-Os logótipos experimentais de Braga e Barcelos são carregados dos URLs Imgur fornecidos. Os três restantes municípios continuam a usar o quadrado de cor, até serem fornecidos os respetivos logótipos.
+Os logótipos dos cinco municípios são carregados dos URLs Imgur fornecidos: Braga, Guimarães, Vila Nova de Famalicão, Viana do Castelo e Barcelos. Como são URLs externos, é necessária ligação à Internet no ecrã do stand.
 
 
 ### ESLint / build
@@ -116,7 +116,7 @@ Esta versão define o ícone Apple explicitamente no `head` e inclui também `ap
 
 Depois de publicar:
 1. No iPhone, remove o atalho antigo do ecrã principal (manter premido → Remover marcador/apagar app, consoante a versão do iOS).
-2. Abre o endereço diretamente na app **Safari** - não a partir do browser interno de outra app.
+2. Abre o endereço diretamente na app **Safari** — não a partir do browser interno de outra app.
 3. Confirma que `https://pentagono-fitur.vercel.app/apple-touch-icon-pentagono-v9.png` mostra o símbolo correto.
 4. No Safari, Partilhar → Adicionar ao ecrã principal → Adicionar.
 5. Se ainda aparecer o ícone anterior, vai a Definições → Apps → Safari → Limpar histórico e dados dos sites (o texto pode variar conforme o iOS), abre novamente o site e repete.
@@ -129,3 +129,13 @@ O iOS não atualiza necessariamente o ícone de um atalho já instalado quando u
 Esta versão declara explicitamente `icons.apple` na API de Metadata do Next.js e usa o ficheiro versionado `/apple-touch-icon-pentagono-v10.png` (180×180) para evitar conflito/cache com ícones de versões anteriores. O manifest usa ícones 192×192 e 512×512 versionados.
 
 Após publicar, confirma que o deployment está associado ao domínio Production; abre diretamente `/apple-touch-icon-pentagono-v10.png`, apaga o atalho antigo do iPhone e volta a adicioná-lo pelo Safari. Não é necessário alterar as variáveis Firebase.
+
+
+## Versão V11 — logótipos e ecrã do stand
+
+- Todos os cinco municípios usam agora os respetivos URLs de logótipo fornecidos.
+- O seletor do município apresenta logótipos maiores e com fundo transparente.
+- A página `/ecran` apresenta a caixa dinâmica «Próxima Ação», que se atualiza ao receber reservas do Firestore e avança conforme a data/hora da atividade.
+- As descrições preenchidas no campo «Descrição da ação» (guardado no campo `notes` para manter compatibilidade com reservas existentes) aparecem na próxima ação e nos cartões do ecrã.
+- Cada cartão inclui o logótipo em dimensão maior e uma marca de água colorida da identidade do município.
+- As agendas são divididas em páginas de seis atividades para dar espaço a logos e descrições.

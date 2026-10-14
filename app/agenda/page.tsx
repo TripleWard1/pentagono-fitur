@@ -1,90 +1,47 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { CalendarDays, Clock3, Tv2, Wifi, WifiOff, ArrowRight, Sparkles } from "lucide-react";
-import {
-  firebaseConfigured, ensureAnonymousSignIn, subscribeReservations, LOCAL_STORAGE_KEY,
-} from "@/lib/firebase";
+import { CalendarDays, Clock3, Tv2, Wifi, WifiOff, ArrowRight, Sparkles, Radio } from "lucide-react";
 import type { Reservation } from "@/lib/firebase";
+import QrCode from "@/components/QrCode";
+import {
+  DAYS, MUNICIPALITIES, pentagonoLogo, getMeta, townSlug, endTime, startDateTime, endDateTime,
+  displayDate, currentFiturDay, liveItems, liveProgress, formatIn, formatRemaining, formatAgo,
+  sortByStart, useNow, useReservations,
+} from "@/lib/agenda";
 
-const DAYS = [
-  { dow: "TERÇA-FEIRA", date: "19", short: "Ter. 19", compact: "TER. 19" },
-  { dow: "QUARTA-FEIRA", date: "20", short: "Qua. 20", compact: "QUA. 20" },
-  { dow: "QUINTA-FEIRA", date: "21", short: "Qui. 21", compact: "QUI. 21" },
-  { dow: "SEXTA-FEIRA", date: "22", short: "Sex. 22", compact: "SEX. 22" },
-  { dow: "SÁBADO", date: "23", short: "Sáb. 23", compact: "SÁB. 23" },
-  { dow: "DOMINGO", date: "24", short: "Dom. 24", compact: "DOM. 24" },
-];
-const TIMES = Array.from({ length: 18 }, (_, i) => `${String(10 + Math.floor(i / 2)).padStart(2, "0")}:${i % 2 ? "30" : "00"}`);
-type TownMeta = { name: string; color: string; logo: string };
-const MUNICIPALITIES: TownMeta[] = [
-  { name: "Barcelos", color: "#55595c", logo: "https://i.imgur.com/e5ntTlW.png" },
-  { name: "Braga", color: "#087443", logo: "https://i.imgur.com/2MEyi4w.png" },
-  { name: "Guimarães", color: "#f2b400", logo: "https://i.imgur.com/zMV4mih.png" },
-  { name: "Viana do Castelo", color: "#087a98", logo: "https://i.imgur.com/xNrj977.png" },
-  { name: "Vila Nova de Famalicão", color: "#df1427", logo: "https://i.imgur.com/6Kt2Xy7.png" },
-];
-const pentagonoLogo = "/pentagono-logo-original.png";
-function getMeta(name: string) { return MUNICIPALITIES.find((item) => item.name === name) || MUNICIPALITIES[0]; }
-function townSlug(name: string) {
-  if (name === "Guimarães") return "guimaraes";
-  if (name === "Vila Nova de Famalicão") return "famalicao";
-  if (name === "Viana do Castelo") return "viana";
-  return name.toLowerCase();
-}
-function endTime(time: string) { const index = TIMES.indexOf(time); return index >= 0 ? TIMES[index + 1] || "19:00" : "19:00"; }
-function startDateTime(item: Reservation) {
-  const [hours, minutes] = item.timeSlot.split(":").map(Number);
-  return new Date(2027, 0, 19 + item.dayIndex, hours || 0, minutes || 0, 0, 0);
-}
-function displayDate(item: Reservation) {
-  const day = DAYS[item.dayIndex];
-  return day ? `${day.dow}, ${day.date} JAN 2027` : "FITUR 2027";
-}
-function currentFiturDay(now: Date) {
-  const start = new Date(2027, 0, 19, 0, 0, 0, 0);
-  const endExclusive = new Date(2027, 0, 25, 0, 0, 0, 0);
-  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
-  if (today < start.getTime()) return 0;
-  if (today >= endExclusive.getTime()) return 5;
-  return Math.min(5, Math.max(0, Math.floor((today - start.getTime()) / 86_400_000)));
-}
+const ROTATION_MS = 16_000;
+const FADE_MS = 450;
+
+/** Balanced pages of at most `pageSize`: 5 activities become 3 + 2, never 4 + a lone card. */
 function splitIntoPages(items: Reservation[], pageSize: number) {
+  const pages = Math.ceil(items.length / pageSize);
   const result: Reservation[][] = [];
-  for (let i = 0; i < items.length; i += pageSize) result.push(items.slice(i, i + pageSize));
+  let cursor = 0;
+  for (let i = 0; i < pages; i += 1) {
+    const size = Math.floor(items.length / pages) + (i < items.length % pages ? 1 : 0);
+    result.push(items.slice(cursor, cursor + size));
+    cursor += size;
+  }
   return result;
 }
 
 export default function StandAgendaScreen() {
-  const [reservations, setReservations] = useState<Reservation[]>([]);
-  const [sync, setSync] = useState<"local" | "connecting" | "online" | "error">("connecting");
+  const { reservations, sync, lastUpdate } = useReservations();
+  const now = useNow(1000);
   const [pageIndex, setPageIndex] = useState(0);
-  const [now, setNow] = useState(new Date());
+  const [fading, setFading] = useState(false);
+  const [programmeUrl, setProgrammeUrl] = useState("");
 
+  useEffect(() => { setProgrammeUrl(`${window.location.origin}/programa`); }, []);
+  // Press "F" on the TV browser to toggle full screen.
   useEffect(() => {
-    const updateTime = () => setNow(new Date());
-    const clock = window.setInterval(updateTime, 15_000);
-    if (!firebaseConfigured) {
-      try {
-        const local = localStorage.getItem(LOCAL_STORAGE_KEY);
-        if (local) setReservations(JSON.parse(local) as Reservation[]);
-      } catch { /* Ignora armazenamento local inválido. */ }
-      setSync("local");
-      const onStorage = (event: StorageEvent) => {
-        if (event.key === LOCAL_STORAGE_KEY && event.newValue) {
-          try { setReservations(JSON.parse(event.newValue) as Reservation[]); } catch { /* Ignora dados inválidos. */ }
-        }
-      };
-      window.addEventListener("storage", onStorage);
-      return () => { window.clearInterval(clock); window.removeEventListener("storage", onStorage); };
-    }
-    let cancelled = false;
-    let unsubscribe: (() => void) | undefined;
-    ensureAnonymousSignIn().then(() => {
-      if (cancelled) return;
-      unsubscribe = subscribeReservations((items) => { setReservations(items); setSync("online"); }, () => setSync("error"));
-    }).catch(() => { if (!cancelled) setSync("error"); });
-    return () => { cancelled = true; unsubscribe?.(); window.clearInterval(clock); };
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key.toLowerCase() !== "f" || event.metaKey || event.ctrlKey || event.altKey) return;
+      if (document.fullscreenElement) void document.exitFullscreen(); else void document.documentElement.requestFullscreen?.();
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
   }, []);
 
   const focusDayIndex = currentFiturDay(now);
@@ -92,74 +49,119 @@ export default function StandAgendaScreen() {
   const programmeFinished = now.getTime() >= new Date(2027, 0, 24, 19, 0, 0, 0).getTime();
   const focusDay = DAYS[focusDayIndex];
 
-  const focusItems = useMemo(() => reservations
-    .filter((item) => item.dayIndex === focusDayIndex)
-    .sort((a, b) => TIMES.indexOf(a.timeSlot) - TIMES.indexOf(b.timeSlot)), [reservations, focusDayIndex]);
-  // Keep the original compact 2x2 activity layout. Long descriptions wrap vertically
-  // inside each capsule instead of switching the main agenda to full-width cards.
+  const focusItems = useMemo(() => sortByStart(reservations.filter((item) => item.dayIndex === focusDayIndex)), [reservations, focusDayIndex]);
   const focusPages = useMemo(() => splitIntoPages(focusItems, 4), [focusItems]);
-  const currentItems = focusPages[pageIndex] || focusPages[0] || [];
 
-  const nextAction = useMemo(() => reservations
-    .map((item) => ({ item, start: startDateTime(item) }))
-    .filter(({ start }) => start.getTime() >= now.getTime())
-    .sort((a, b) => a.start.getTime() - b.start.getTime())[0]?.item || null,
-  [reservations, now]);
+  const live = useMemo(() => liveItems(reservations, now), [reservations, now]);
+  const liveNow = live[0] || null;
+  const nextAction = useMemo(() => sortByStart(reservations).find((item) => startDateTime(item).getTime() > now.getTime()) || null, [reservations, now]);
+
+  // Between activities the display adds an "attract" scene (the five municipalities + QR code) to the rotation.
+  const showAttract = !liveNow;
+  const totalPages = focusPages.length + (showAttract ? 1 : 0);
+  const safeIndex = totalPages ? pageIndex % totalPages : 0;
+  const onAttract = showAttract && safeIndex === focusPages.length;
+  const currentItems = onAttract ? [] : focusPages[safeIndex] || [];
 
   useEffect(() => { setPageIndex(0); }, [focusDayIndex]);
   useEffect(() => {
-    setPageIndex((current) => focusPages.length ? current % focusPages.length : 0);
-    if (focusPages.length < 2) return;
-    const rotation = window.setInterval(() => setPageIndex((current) => (current + 1) % focusPages.length), 16_000);
-    return () => window.clearInterval(rotation);
-  }, [focusPages.length, focusDayIndex]);
+    if (totalPages < 2) return;
+    let swap: number | undefined;
+    const rotation = window.setInterval(() => {
+      setFading(true);
+      swap = window.setTimeout(() => { setPageIndex((current) => (current + 1) % totalPages); setFading(false); }, FADE_MS);
+    }, ROTATION_MS);
+    return () => { window.clearInterval(rotation); window.clearTimeout(swap); setFading(false); };
+  }, [totalPages, focusDayIndex]);
 
-  const formattedTime = now.toLocaleTimeString("pt-PT", { hour: "2-digit", minute: "2-digit" });
-  const focusDateLabel = `${focusDay.dow} · ${focusDay.date} DE JANEIRO`;
-  const mainTitle = programmeFinished ? "Agenda da FITUR 2027" : inFiturWeek ? "Hoje no Pentágono" : "A agenda do Pentágono";
-  const eyebrowText = programmeFinished ? "PROGRAMAÇÃO CONCLUÍDA · FITUR 2027" : inFiturWeek ? focusDateLabel : `A PARTIR DE ${focusDateLabel}`;
+  const formattedTime = now.toLocaleTimeString("es-ES", { hour: "2-digit", minute: "2-digit" });
+  const focusDateLabel = `${focusDay.dow} · ${focusDay.date} DE ENERO`;
+  const mainTitle = programmeFinished ? "Agenda de FITUR 2027" : inFiturWeek ? "Hoy en el Pentágono" : "La agenda del Pentágono";
+  const eyebrowText = programmeFinished ? "PROGRAMA FINALIZADO · FITUR 2027" : inFiturWeek ? focusDateLabel : `A PARTIR DEL ${focusDateLabel}`;
+  const dayLower = focusDay.dow.toLocaleLowerCase("es-ES");
+  const stale = (sync === "error" || sync === "connecting") && lastUpdate;
+
+  const statusLabel = sync === "online" ? <><Wifi size={17} /> Actualizado en tiempo real</>
+    : stale ? <><WifiOff size={17} /> Sin conexión · actualizado {formatAgo(lastUpdate!, now.getTime())}</>
+    : sync === "connecting" ? <>Conectando con la agenda…</>
+    : sync === "local" ? <><WifiOff size={17} /> Vista previa local</>
+    : <><WifiOff size={17} /> Sin conexión con la agenda</>;
+
+  const nextMeta = nextAction ? getMeta(nextAction.municipality) : null;
+  const liveMeta = liveNow ? getMeta(liveNow.municipality) : null;
 
   return <main className="screen-app screen-app-v11 screen-app-v12">
     <header className="screen-header">
       <div className="screen-brand"><img src={pentagonoLogo} alt="Pentágono Urbano" /><span className="screen-divider" /><div><strong>PENTÁGONO URBANO</strong><small>FITUR 2027 · IFEMA MADRID</small></div></div>
-      <div className="screen-status"><span className={`screen-connection ${sync}`}><i />{sync === "online" ? <><Wifi size={17} /> Atualizado em tempo real</> : sync === "connecting" ? <>A ligar à agenda…</> : sync === "local" ? <><WifiOff size={17} /> Pré-visualização local</> : <><WifiOff size={17} /> Sem ligação à agenda</>}</span><span className="screen-clock"><Clock3 size={17} />{formattedTime}</span></div>
+      <div className="screen-status"><span className={`screen-connection ${stale ? "stale" : sync}`}><i />{statusLabel}</span><span className="screen-clock"><Clock3 size={17} />{formattedTime}</span></div>
     </header>
     <div className="screen-ribbon" aria-hidden="true"><i /><i /><i /><i /><i /></div>
     <section className="screen-main screen-main-v11 screen-main-v12">
-      <div className="screen-kicker"><Tv2 size={16} /> PROGRAMAÇÃO DO STAND <span className="screen-kicker-dot" /> CINCO MUNICÍPIOS, UM DESTINO</div>
+      <div className="screen-kicker"><Tv2 size={16} /> PROGRAMACIÓN DEL STAND <span className="screen-kicker-dot" /> CINCO MUNICIPIOS, UN DESTINO</div>
       <div className="screen-title-row screen-title-row-v12">
-        <div><p>{eyebrowText}</p><h1>{mainTitle}</h1><span className="screen-focus-note">{programmeFinished ? "Obrigado por acompanhar o Pentágono Urbano" : inFiturWeek ? "Programação do dia · Atualizada em tempo real" : "Programação do primeiro dia · Atualizada em tempo real"}</span></div>
-        <div className="screen-date-stamp"><CalendarDays size={22} /><span>19—24<strong>JAN 2027</strong></span></div>
+        <div><p>{eyebrowText}</p><h1>{mainTitle}</h1><span className="screen-focus-note">{programmeFinished ? "Gracias por acompañar al Pentágono Urbano" : inFiturWeek ? "Programa del día · Actualizado en tiempo real" : "Programa del primer día · Actualizado en tiempo real"}</span></div>
+        <div className="screen-title-aside">
+          {programmeUrl && <div className="screen-qr-chip"><QrCode className="screen-qr-chip-code" value={programmeUrl} label="Código QR del programa completo" /><span><strong>Lleva el programa en tu móvil</strong><small>Escanea el código</small></span></div>}
+          <div className="screen-date-stamp"><CalendarDays size={22} /><span>19—24<strong>ENE 2027</strong></span></div>
+        </div>
       </div>
 
-      <section className="screen-next-action" aria-live="polite" aria-label="Próxima ação">
-        <div className="screen-next-label"><Sparkles size={16} /> <span>PRÓXIMA AÇÃO</span><i /></div>
-        {nextAction ? (() => {
-          const meta = getMeta(nextAction.municipality);
-          return <div className="screen-next-body" style={{ "--town": meta.color } as React.CSSProperties}>
-            <img className="screen-next-watermark" src={meta.logo} alt="" aria-hidden="true" />
-            <div className={`screen-next-logo screen-next-logo-${townSlug(meta.name)}`}><img src={meta.logo} alt={`Logótipo de ${meta.name}`} /><span>{meta.name}</span></div>
-            <div className="screen-next-copy"><div className="screen-next-time"><strong>{nextAction.timeSlot}</strong><span>— {endTime(nextAction.timeSlot)}</span><i /><small>{displayDate(nextAction)}</small></div><h2>{nextAction.actionName}</h2>{nextAction.notes?.trim() && <p><span>DESCRIÇÃO DA AÇÃO</span>{nextAction.notes}</p>}</div>
-            <ArrowRight className="screen-next-arrow" size={28} />
-          </div>;
-        })() : <div className="screen-next-empty"><strong>{programmeFinished ? "Programa concluído" : "Ainda não há próximas ações marcadas"}</strong><span>{programmeFinished ? "Obrigado por visitar o Pentágono Urbano." : "As novas reservas aparecerão automaticamente neste ecrã."}</span></div>}
+      {liveNow && liveMeta && <section className="screen-next-action screen-live-action" aria-live="polite" aria-label="En directo ahora" style={{ "--town": liveMeta.color } as React.CSSProperties}>
+        <div className="screen-next-label screen-live-label"><Radio size={16} /> <span>EN DIRECTO AHORA</span><i /><em>{formatRemaining(endDateTime(liveNow).getTime() - now.getTime())}</em></div>
+        <div className="screen-next-body">
+          <img className="screen-next-watermark" src={liveMeta.logo} alt="" aria-hidden="true" />
+          <div className={`screen-next-logo screen-next-logo-${townSlug(liveMeta.name)}`}><img src={liveMeta.logo} alt={`Logotipo de ${liveMeta.name}`} /><span>{liveMeta.name}</span></div>
+          <div className="screen-next-copy"><div className="screen-next-time"><strong>{liveNow.timeSlot}</strong><span>— {endTime(liveNow.timeSlot)}</span><span className="screen-live-pill"><i />EN DIRECTO</span></div><h2>{liveNow.actionName}</h2>{liveNow.notes?.trim() && <p><span>DESCRIPCIÓN</span>{liveNow.notes}</p>}</div>
+          <ArrowRight className="screen-next-arrow" size={28} />
+        </div>
+        <div className="screen-live-progress" aria-hidden="true"><b style={{ width: `${Math.round(liveProgress(liveNow, now) * 100)}%` }} /></div>
+      </section>}
+
+      <section className="screen-next-action" aria-live="polite" aria-label="Próxima acción">
+        <div className="screen-next-label"><Sparkles size={16} /> <span>PRÓXIMA ACTIVIDAD</span><i /></div>
+        {nextAction && nextMeta ? <div className="screen-next-body" style={{ "--town": nextMeta.color } as React.CSSProperties}>
+          <img className="screen-next-watermark" src={nextMeta.logo} alt="" aria-hidden="true" />
+          <div className={`screen-next-logo screen-next-logo-${townSlug(nextMeta.name)}`}><img src={nextMeta.logo} alt={`Logotipo de ${nextMeta.name}`} /><span>{nextMeta.name}</span></div>
+          <div className="screen-next-copy"><div className="screen-next-time"><strong>{nextAction.timeSlot}</strong><span>— {endTime(nextAction.timeSlot)}</span><i /><small>{displayDate(nextAction)}</small><span className="screen-countdown"><Clock3 size={14} />Empieza {formatIn(startDateTime(nextAction).getTime() - now.getTime())}</span></div><h2>{nextAction.actionName}</h2>{nextAction.notes?.trim() && <p><span>DESCRIPCIÓN</span>{nextAction.notes}</p>}</div>
+          <ArrowRight className="screen-next-arrow" size={28} />
+        </div> : <div className="screen-next-empty"><strong>{programmeFinished ? "Programa finalizado" : "Aún no hay próximas actividades programadas"}</strong><span>{programmeFinished ? "Gracias por visitar el Pentágono Urbano." : "Las nuevas reservas aparecerán automáticamente en esta pantalla."}</span></div>}
       </section>
 
-      <div className="screen-activity-heading"><strong>{programmeFinished ? `Último dia · ${focusDay.dow.toLocaleLowerCase("pt-PT")}` : inFiturWeek ? `Atividades de ${focusDay.dow.toLocaleLowerCase("pt-PT")}` : `Primeiro dia · ${focusDay.dow.toLocaleLowerCase("pt-PT")}`}</strong><span>{focusItems.length} {focusItems.length === 1 ? "atividade" : "atividades"}{focusPages.length > 1 ? ` · Página ${pageIndex + 1} de ${focusPages.length}` : ""}</span></div>
-      {currentItems.length ? <div className="screen-activities screen-activities-v12" style={{ gridTemplateColumns: currentItems.length <= 2 ? "minmax(0, 1fr)" : "repeat(2, minmax(0, 1fr))", gridTemplateRows: `repeat(${Math.ceil(currentItems.length / (currentItems.length <= 2 ? 1 : 2))}, minmax(0, 1fr))` }}>
-        {currentItems.map((item) => {
-          const meta = getMeta(item.municipality);
-          return <article className="screen-activity screen-activity-v11" key={item.id} style={{ "--town": meta.color } as React.CSSProperties}>
-            <img className="screen-activity-watermark" src={meta.logo} alt="" aria-hidden="true" />
-            <div className="screen-activity-time"><strong>{item.timeSlot}</strong><span>ATÉ {endTime(item.timeSlot)}</span><i>FITUR 2027</i></div>
-            <div className="screen-activity-main"><div className={`screen-town screen-town-${townSlug(item.municipality)}`}><img src={meta.logo} alt={`Logótipo do Município de ${item.municipality}`} loading="eager" /><span>{item.municipality}</span></div><h2>{item.actionName}</h2>{item.notes?.trim() && <p className="screen-activity-description"><span>DESCRIÇÃO</span>{item.notes}</p>}{item.responsible?.trim() && <small className="screen-activity-responsible">Com {item.responsible}</small>}</div>
-            <div className="screen-activity-marker" aria-hidden="true" />
-          </article>;
-        })}
-      </div> : <div className="screen-focus-empty"><strong>Ainda sem atividades neste dia</strong><span>As atividades agendadas para {focusDay.short} aparecerão aqui.</span></div>}
+      {onAttract ? <>
+        <div className="screen-activity-heading"><strong>Cinco municipios, un destino</strong><span>Próximas actividades de cada municipio</span></div>
+        <div className={`screen-attract${fading ? " is-fading" : ""}`}>
+          <div className="screen-attract-towns">
+            {MUNICIPALITIES.map((town) => {
+              const upcoming = sortByStart(reservations.filter((item) => item.municipality === town.name)).find((item) => startDateTime(item).getTime() > now.getTime());
+              return <article className="screen-attract-town" key={town.name} style={{ "--town": town.color } as React.CSSProperties}>
+                <img src={town.logo} alt={`Logotipo de ${town.name}`} />
+                <strong>{town.name}</strong>
+                {upcoming ? <p><small>PRÓXIMA ACTIVIDAD</small><b>{DAYS[upcoming.dayIndex]?.compact} · {upcoming.timeSlot}</b><span>{upcoming.actionName}</span></p> : <p><small>PRÓXIMA ACTIVIDAD</small><span>Sin actividades programadas</span></p>}
+              </article>;
+            })}
+          </div>
+          {programmeUrl && <aside className="screen-attract-qr"><QrCode className="screen-attract-qr-code" value={programmeUrl} label="Código QR del programa completo" /><div><strong>Lleva el programa en tu móvil</strong><span>Escanea el código con la cámara: verás todas las actividades de los cinco municipios, en directo, y podrás añadirlas a tu calendario.</span></div></aside>}
+        </div>
+      </> : <>
+        <div className="screen-activity-heading"><strong>{programmeFinished ? `Último día · ${dayLower}` : inFiturWeek ? `Actividades del ${dayLower}` : `Primer día · ${dayLower}`}</strong><span>{focusItems.length} {focusItems.length === 1 ? "actividad" : "actividades"}{totalPages > 1 ? ` · Página ${safeIndex + 1} de ${totalPages}` : ""}</span></div>
+        {currentItems.length ? <div className={`screen-activities screen-activities-v12${fading ? " is-fading" : ""}`} style={{ gridTemplateColumns: currentItems.length <= 2 ? "minmax(0, 1fr)" : "repeat(2, minmax(0, 1fr))", gridTemplateRows: `repeat(${Math.ceil(currentItems.length / (currentItems.length <= 2 ? 1 : 2))}, minmax(0, 1fr))` }}>
+          {currentItems.map((item) => {
+            const meta = getMeta(item.municipality);
+            const isLive = liveNow?.id === item.id;
+            const isDone = endDateTime(item).getTime() <= now.getTime();
+            return <article className={`screen-activity screen-activity-v11${isLive ? " is-live" : ""}${isDone ? " is-done" : ""}`} key={item.id} style={{ "--town": meta.color } as React.CSSProperties}>
+              <img className="screen-activity-watermark" src={meta.logo} alt="" aria-hidden="true" />
+              <div className="screen-activity-time"><strong>{item.timeSlot}</strong><span>HASTA {endTime(item.timeSlot)}</span><i>{isLive ? "EN DIRECTO" : isDone ? "FINALIZADA" : "FITUR 2027"}</i></div>
+              <div className="screen-activity-main"><div className={`screen-town screen-town-${townSlug(item.municipality)}`}><img src={meta.logo} alt={`Logotipo del municipio de ${item.municipality}`} loading="eager" /><span>{item.municipality}</span></div><h2>{item.actionName}</h2>{item.notes?.trim() && <p className="screen-activity-description"><span>DESCRIPCIÓN</span>{item.notes}</p>}{item.responsible?.trim() && <small className="screen-activity-responsible">Con {item.responsible}</small>}</div>
+              {isLive && <div className="screen-activity-progress" aria-hidden="true"><b style={{ width: `${Math.round(liveProgress(item, now) * 100)}%` }} /></div>}
+              <div className="screen-activity-marker" aria-hidden="true" />
+            </article>;
+          })}
+        </div> : <div className="screen-focus-empty"><strong>Aún no hay actividades este día</strong><span>Las actividades programadas para el {focusDay.short} aparecerán aquí.</span></div>}
+      </>}
 
-      <div className="screen-pagination"><div>{DAYS.map((day, index) => <span key={day.date} className={focusDayIndex === index ? "active" : ""} />)}</div><p>Consulte a equipa do município para mais informações.</p><small>{focusPages.length > 1 ? "PÁGINAS DO DIA EM ROTAÇÃO AUTOMÁTICA" : "ATUALIZAÇÃO AUTOMÁTICA"}</small></div>
+      <div className="screen-pagination"><div>{Array.from({ length: Math.max(totalPages, 1) }, (_, index) => <span key={index} className={safeIndex === index ? "active" : ""} />)}</div><p>Consulta al equipo del municipio para más información.</p><small>{totalPages > 1 ? "PÁGINAS EN ROTACIÓN AUTOMÁTICA" : "ACTUALIZACIÓN AUTOMÁTICA"}</small></div>
     </section>
-    <footer className="screen-footer"><span>BRAGA <i /> GUIMARÃES <i /> VILA NOVA DE FAMALICÃO <i /> VIANA DO CASTELO <i /> BARCELOS</span><strong>UM TERRITÓRIO, CINCO MUNICÍPIOS</strong></footer>
+    <footer className="screen-footer"><span>BARCELOS <i /> BRAGA <i /> GUIMARÃES <i /> VIANA DO CASTELO <i /> VILA NOVA DE FAMALICÃO</span><strong>UN TERRITORIO, CINCO MUNICIPIOS</strong></footer>
   </main>;
 }

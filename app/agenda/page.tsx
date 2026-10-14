@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { CalendarDays, Clock3, Tv2, Wifi, WifiOff, ArrowRight, Sparkles, ChevronRight } from "lucide-react";
+import { CalendarDays, Clock3, Tv2, Wifi, WifiOff, ArrowRight, Sparkles } from "lucide-react";
 import {
   firebaseConfigured, ensureAnonymousSignIn, subscribeReservations, LOCAL_STORAGE_KEY,
 } from "@/lib/firebase";
@@ -17,7 +17,6 @@ const DAYS = [
 ];
 const TIMES = Array.from({ length: 18 }, (_, i) => `${String(10 + Math.floor(i / 2)).padStart(2, "0")}:${i % 2 ? "30" : "00"}`);
 type TownMeta = { name: string; color: string; logo: string };
-type DayPreview = { dayIndex: number; items: Reservation[] };
 const MUNICIPALITIES: TownMeta[] = [
   { name: "Braga", color: "#087443", logo: "https://i.imgur.com/2MEyi4w.png" },
   { name: "Guimarães", color: "#f2b400", logo: "https://i.imgur.com/zMV4mih.png" },
@@ -101,12 +100,6 @@ export default function StandAgendaScreen() {
   const focusPages = useMemo(() => splitIntoPages(focusItems, 4), [focusItems]);
   const currentItems = focusPages[pageIndex] || focusPages[0] || [];
 
-  const upcomingDays: DayPreview[] = useMemo(() => DAYS
-    .map((_, dayIndex) => ({ dayIndex, items: reservations
-      .filter((item) => item.dayIndex === dayIndex)
-      .sort((a, b) => TIMES.indexOf(a.timeSlot) - TIMES.indexOf(b.timeSlot)) }))
-    .filter((day) => day.dayIndex > focusDayIndex && day.items.length > 0), [reservations, focusDayIndex]);
-
   const nextAction = useMemo(() => reservations
     .map((item) => ({ item, start: startDateTime(item) }))
     .filter(({ start }) => start.getTime() >= now.getTime())
@@ -135,8 +128,8 @@ export default function StandAgendaScreen() {
     <section className="screen-main screen-main-v11 screen-main-v12">
       <div className="screen-kicker"><Tv2 size={16} /> PROGRAMAÇÃO DO STAND <span className="screen-kicker-dot" /> CINCO MUNICÍPIOS, UM DESTINO</div>
       <div className="screen-title-row screen-title-row-v12">
-        <div><p>{eyebrowText}</p><h1>{mainTitle}</h1><span className="screen-focus-note">{programmeFinished ? "Obrigado por acompanhar o Pentágono Urbano" : inFiturWeek ? "O destaque de hoje · As próximas datas ficam visíveis em baixo" : "Primeiro dia em destaque · Consulte também as próximas datas"}</span></div>
-        <div className="screen-date-stamp"><CalendarDays size={22} /><span>19-24<strong>JAN 2027</strong></span></div>
+        <div><p>{eyebrowText}</p><h1>{mainTitle}</h1><span className="screen-focus-note">{programmeFinished ? "Obrigado por acompanhar o Pentágono Urbano" : inFiturWeek ? "Programação do dia · Atualizada em tempo real" : "Programação do primeiro dia · Atualizada em tempo real"}</span></div>
+        <div className="screen-date-stamp"><CalendarDays size={22} /><span>19—24<strong>JAN 2027</strong></span></div>
       </div>
 
       <section className="screen-next-action" aria-live="polite" aria-label="Próxima ação">
@@ -146,7 +139,7 @@ export default function StandAgendaScreen() {
           return <div className="screen-next-body" style={{ "--town": meta.color } as React.CSSProperties}>
             <img className="screen-next-watermark" src={meta.logo} alt="" aria-hidden="true" />
             <div className={`screen-next-logo screen-next-logo-${townSlug(meta.name)}`}><img src={meta.logo} alt={`Logótipo de ${meta.name}`} /><span>{meta.name}</span></div>
-            <div className="screen-next-copy"><div className="screen-next-time"><strong>{nextAction.timeSlot}</strong><span>- {endTime(nextAction.timeSlot)}</span><i /><small>{displayDate(nextAction)}</small></div><h2>{nextAction.actionName}</h2>{nextAction.notes?.trim() && <p><span>DESCRIÇÃO DA AÇÃO</span>{nextAction.notes}</p>}</div>
+            <div className="screen-next-copy"><div className="screen-next-time"><strong>{nextAction.timeSlot}</strong><span>— {endTime(nextAction.timeSlot)}</span><i /><small>{displayDate(nextAction)}</small></div><h2>{nextAction.actionName}</h2>{nextAction.notes?.trim() && <p><span>DESCRIÇÃO DA AÇÃO</span>{nextAction.notes}</p>}</div>
             <ArrowRight className="screen-next-arrow" size={28} />
           </div>;
         })() : <div className="screen-next-empty"><strong>{programmeFinished ? "Programa concluído" : "Ainda não há próximas ações marcadas"}</strong><span>{programmeFinished ? "Obrigado por visitar o Pentágono Urbano." : "As novas reservas aparecerão automaticamente neste ecrã."}</span></div>}
@@ -164,22 +157,6 @@ export default function StandAgendaScreen() {
           </article>;
         })}
       </div> : <div className="screen-focus-empty"><strong>Ainda sem atividades neste dia</strong><span>As atividades agendadas para {focusDay.short} aparecerão aqui.</span></div>}
-
-      {upcomingDays.length > 0 && <section className="screen-upcoming-section" aria-label="Atividades dos próximos dias">
-        <div className="screen-upcoming-heading"><div><span>CONTINUA A DESCOBRIR</span><strong>Nos próximos dias</strong></div><small>Pré-visualização · O dia em destaque mantém-se acima</small></div>
-        <div className="screen-upcoming-grid">
-          {upcomingDays.map((day) => {
-            const first = day.items[0];
-            const meta = getMeta(first.municipality);
-            return <article className="screen-upcoming-day" key={day.dayIndex} style={{ "--town": meta.color } as React.CSSProperties}>
-              <img className="screen-upcoming-watermark" src={meta.logo} alt="" aria-hidden="true" />
-              <div className="screen-upcoming-top"><img src={meta.logo} alt="" /><div><strong>{DAYS[day.dayIndex].compact}</strong><span>{day.items.length} {day.items.length === 1 ? "ação marcada" : "ações marcadas"}</span></div><ChevronRight size={15} /></div>
-              <div className="screen-upcoming-list">{day.items.slice(0, 2).map((item) => <div className="screen-upcoming-first" key={item.id}><time>{item.timeSlot}</time><div className="screen-upcoming-copy"><span className="screen-upcoming-action">{item.actionName}</span>{item.notes?.trim() && <p className="screen-upcoming-description">{item.notes}</p>}</div></div>)}</div>
-              {day.items.length > 2 && <small className="screen-upcoming-more">+ {day.items.length - 2} {day.items.length - 2 === 1 ? "atividade" : "atividades"} no programa</small>}
-            </article>;
-          })}
-        </div>
-      </section>}
 
       <div className="screen-pagination"><div>{DAYS.map((day, index) => <span key={day.date} className={focusDayIndex === index ? "active" : ""} />)}</div><p>Consulte a equipa do município para mais informações.</p><small>{focusPages.length > 1 ? "PÁGINAS DO DIA EM ROTAÇÃO AUTOMÁTICA" : "ATUALIZAÇÃO AUTOMÁTICA"}</small></div>
     </section>

@@ -311,12 +311,12 @@ export default function Home() {
   return (
     <main className="app-shell" style={{ "--selected": selectedMeta.color, "--selected-pale": selectedMeta.pale } as React.CSSProperties}>
       <header className="topbar">
-        <a className="brand" href="#main" aria-label="Pentágono Urbano - início">
+        <a className="brand" href="#main" aria-label="Pentágono Urbano — início">
           <span className="brand-logo-wrap"><img src={logoUrl} alt="Pentágono Urbano" className="brand-logo" /></span>
           <span className="brand-divider" />
           <span className="brand-app"><strong>FITUR 2027</strong><small>Gestão de horários</small></span>
         </a>
-        <div className="topbar-meta"><span className={`event-status sync-${syncStatus}`}><i /> {syncStatus === "online" ? "Sincronizado" : syncStatus === "connecting" ? "A ligar à Firebase…" : syncStatus === "error" ? "Erro de sincronização" : "Modo local"}</span><span className="topbar-separator" /><a className="screen-link" href="/agenda" target="_blank" rel="noreferrer">Agenda do stand <ChevronRight size={13} /></a><span className="topbar-separator" /> <span>Madrid · 19-24 jan. 2027</span></div>
+        <div className="topbar-meta"><span className={`event-status sync-${syncStatus}`}><i /> {syncStatus === "online" ? "Sincronizado" : syncStatus === "connecting" ? "A ligar à Firebase…" : syncStatus === "error" ? "Erro de sincronização" : "Modo local"}</span><span className="topbar-separator" /><a className="screen-link" href="/agenda" target="_blank" rel="noreferrer">Agenda do stand <ChevronRight size={13} /></a><span className="topbar-separator" /> <span>Madrid · 19—24 jan. 2027</span></div>
       </header>
 
       <div className="content-shell" id="main">
@@ -425,7 +425,7 @@ export default function Home() {
                   <td className="date-cell"><strong>{DAYS[r.dayIndex].date} JAN</strong><small>{r.timeSlot}–{getEndTime(r.timeSlot)}</small></td>
                   <td><span className="table-municipality"><i style={{ background: meta.color }} />{r.municipality}</span></td>
                   <td><strong className="table-action-name">{r.actionName}</strong>{r.notes && <small className="table-note">{r.notes}</small>}</td>
-                  <td><span className="table-responsible">{r.responsible || "-"}</span><small className="table-contact">{r.contact || "Sem contacto"}</small></td>
+                  <td><span className="table-responsible">{r.responsible || "—"}</span><small className="table-contact">{r.contact || "Sem contacto"}</small></td>
                   <td><div className="row-actions">{r.municipality === municipality && <><button type="button" aria-label={`Editar ${r.actionName}`} title="Editar" onClick={() => openEdit(r)}><Edit3 size={14} /></button><button type="button" aria-label={`Remover ${r.actionName}`} title="Remover" onClick={() => removeReservation(r)}><Trash2 size={14} /></button></>}</div></td>
                 </tr>;})}
               </tbody></table></div>

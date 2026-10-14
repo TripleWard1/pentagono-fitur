@@ -916,7 +916,7 @@ body::before {
   .screen-upcoming-watermark { right: 2%; width: 44%; }
 }
 
-/* V15 - fit the upcoming-day capsules without changing the main day's layout. */
+/* V15 — fit the upcoming-day capsules without changing the main day's layout. */
 @media (min-width: 751px) {
   .screen-main-v12 .screen-next-action { margin-bottom: .2vh; }
   .screen-main-v12 .screen-next-label { padding-top: .42vh; padding-bottom: .42vh; }
@@ -952,3 +952,8 @@ body::before {
     line-height: 1.16;
   }
 }
+
+
+/* V16 — keep the display focused on the current day's agenda only.
+   With the future-days preview removed, let today's activity capsules use the freed space. */
+.screen-main-v12 .screen-activities-v12 { max-height: none; }

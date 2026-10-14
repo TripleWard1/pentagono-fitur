@@ -598,7 +598,7 @@ body::before {
 .slot-other .slot-status { color: var(--slot-contrast, #fff); background: var(--slot-color); padding: 3px 5px; }
 .slot-own .slot-status { color: var(--slot-color); background: color-mix(in srgb, var(--slot-color) 11%, white); }
 
-/* Giant-screen programme route: /ecran */
+/* Giant-screen programme route: /agenda (old /ecran route redirects here) */
 .screen-app { --screen-green: #087443; min-height: 100vh; height: 100vh; overflow: hidden; display: flex; flex-direction: column; padding: 0 3.2vw; background: #fff; color: #17211b; font-family: Verdana, Geneva, Tahoma, sans-serif; }
 .screen-header { display: flex; flex: 0 0 auto; align-items: center; justify-content: space-between; gap: 24px; padding: 1.4vh 0 1.2vh; }
 .screen-brand { display: flex; align-items: center; gap: 18px; min-width: 0; }
@@ -766,3 +766,72 @@ body::before {
 .municipality-logo-braga { transform: scale(1.18); }
 .screen-next-copy p span { display: inline-block; margin-right: 8px; color: var(--town); font-size: .72em; font-weight: 800; letter-spacing: .09em; }
 @media (max-width: 750px) { .municipality-logo-braga { transform: scale(1.1); } }
+
+/* V12: hierarchy that keeps today's programme prominent and future days in a quieter preview. */
+.screen-app-v12 { background: #fff; }
+.screen-main-v12 { padding-top: .9vh; gap: 0; }
+.screen-main-v12 .screen-kicker { flex: 0 0 auto; margin-bottom: .25vh; }
+.screen-title-row-v12 { flex: 0 0 auto; margin: .35vh 0 .8vh !important; align-items: center; }
+.screen-title-row-v12 h1 { font-size: clamp(25px, 2.55vw, 44px) !important; }
+.screen-title-row-v12 p { margin-bottom: .2vh !important; }
+.screen-focus-note { display: block; margin-top: .35vh; color: #69766c; font-size: clamp(9px, .72vw, 12px); }
+.screen-main-v12 .screen-next-action { margin-bottom: .8vh; }
+.screen-main-v12 .screen-next-body { min-height: clamp(100px, 12.5vh, 150px); }
+.screen-main-v12 .screen-next-logo img { width: clamp(96px, 8.4vw, 148px); height: clamp(68px, 8.5vh, 96px); }
+.screen-main-v12 .screen-activity-heading { flex: 0 0 auto; padding: .15vh 0 .5vh; }
+.screen-activities-v12 { flex: 1 1 auto; min-height: 110px; max-height: 32vh; grid-auto-rows: minmax(0, 1fr); padding: .6vh 0; gap: .65vh .75vw; }
+.screen-activities-v12 .screen-activity-v11 { min-height: 0; }
+.screen-main-v12 .screen-activity-main { padding: .5vh .8vw; }
+.screen-main-v12 .screen-town { gap: 7px; }
+.screen-main-v12 .screen-town img { width: clamp(62px, 5.4vw, 92px); height: clamp(48px, 6.2vh, 70px); }
+.screen-main-v12 .screen-activity-main h2 { font-size: clamp(14px, 1.15vw, 20px); }
+.screen-focus-empty { min-height: 100px; flex: 1 1 auto; display: flex; justify-content: center; flex-direction: column; padding: 1.3vh 1.1vw; margin: .8vh 0; border: 1px dashed #cfd8ce; border-radius: 8px; color: #34463a; background: #f8faf6; }
+.screen-focus-empty strong { font-size: clamp(15px, 1.2vw, 20px); }
+.screen-focus-empty span { margin-top: 4px; color: #758077; font-size: clamp(10px, .75vw, 13px); }
+.screen-upcoming-section { flex: 0 0 auto; margin: .45vh 0 .5vh; }
+.screen-upcoming-heading { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: .4vh; }
+.screen-upcoming-heading > div { display: flex; align-items: baseline; gap: 10px; }
+.screen-upcoming-heading > div span { color: #8a958c; font-size: clamp(7px, .53vw, 9px); font-weight: 800; letter-spacing: .13em; }
+.screen-upcoming-heading > div strong { color: #4d5d51; font-size: clamp(11px, .85vw, 14px); }
+.screen-upcoming-heading > small { color: #859087; font-size: clamp(8px, .57vw, 10px); }
+.screen-upcoming-grid { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: .55vw; }
+.screen-upcoming-day { position: relative; isolation: isolate; min-width: 0; overflow: hidden; padding: .55vh .65vw; border: 1px solid color-mix(in srgb, var(--town) 28%, #e5e9e3); border-bottom: 3px solid var(--town); border-radius: 6px; background: linear-gradient(105deg, color-mix(in srgb, var(--town) 6%, #fff), #fff 75%); }
+.screen-upcoming-top { position: relative; z-index: 1; display: flex; align-items: center; gap: .45vw; min-width: 0; }
+.screen-upcoming-top img { width: clamp(26px, 2.5vw, 42px); height: clamp(24px, 3.2vh, 36px); object-fit: contain; flex: 0 0 auto; }
+.screen-upcoming-top > div { display: flex; flex: 1; flex-direction: column; min-width: 0; gap: 2px; }
+.screen-upcoming-top strong { color: var(--town); font-size: clamp(9px, .78vw, 13px); letter-spacing: .04em; }
+.screen-upcoming-top span { color: #859087; font-size: clamp(7px, .54vw, 9px); }
+.screen-upcoming-top > svg { flex: 0 0 auto; color: var(--town); opacity: .65; }
+.screen-upcoming-first { position: relative; z-index: 1; display: flex; gap: 6px; align-items: flex-start; margin-top: .38vh; min-width: 0; }
+.screen-upcoming-first time { flex: 0 0 auto; color: var(--town); font-size: clamp(8px, .65vw, 11px); font-weight: 800; }
+.screen-upcoming-first span { display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical; overflow: hidden; color: #4f5d53; font-size: clamp(8px, .63vw, 11px); font-weight: 600; }
+.screen-upcoming-more { position: relative; z-index: 1; display: block; margin-top: 2px; color: #879087; font-size: clamp(7px, .52vw, 9px); }
+.screen-upcoming-watermark { position: absolute; z-index: 0; width: 52%; height: 150%; right: -4%; top: -26%; object-fit: contain; opacity: .065; transform: rotate(-7deg); pointer-events: none; }
+.screen-main-v12 .screen-pagination { flex: 0 0 auto; padding-top: .45vh; }
+.screen-main-v12 .screen-pagination p { font-size: clamp(8px, .65vw, 11px); }
+
+/* Optical-size compensation for horizontally oriented municipal logos. */
+.screen-town-guimaraes img, .screen-next-logo-guimaraes img { transform: scale(1.28); }
+.screen-town-famalicao img, .screen-next-logo-famalicao img { transform: scale(1.3); }
+.screen-town-braga img, .screen-next-logo-braga img { transform: scale(1.34); }
+@media (max-width: 750px) {
+  .screen-main-v12 { min-height: auto; }
+  .screen-title-row-v12 { margin: 12px 0 14px !important; }
+  .screen-title-row-v12 h1 { font-size: 26px !important; }
+  .screen-focus-note { font-size: 10px; }
+  .screen-activities-v12 { max-height: none; min-height: 0; }
+  .screen-upcoming-heading { align-items: flex-start; flex-direction: column; gap: 3px; margin: 6px 0; }
+  .screen-upcoming-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 7px; }
+  .screen-upcoming-day { padding: 8px; }
+  .screen-upcoming-top img { width: 34px; height: 30px; }
+  .screen-upcoming-top strong { font-size: 10px; }
+  .screen-upcoming-first time, .screen-upcoming-first span { font-size: 9px; }
+  .screen-upcoming-more { font-size: 8px; }
+  .screen-town-braga img, .screen-next-logo-braga img { transform: scale(1.16); }
+  .screen-town-guimaraes img, .screen-next-logo-guimaraes img { transform: scale(1.16); }
+  .screen-town-famalicao img, .screen-next-logo-famalicao img { transform: scale(1.17); }
+}
+
+.screen-upcoming-list { position: relative; z-index: 1; display: flex; flex-direction: column; gap: 2px; margin-top: .35vh; }
+.screen-upcoming-list .screen-upcoming-first { margin-top: 0; }
+.screen-upcoming-list .screen-upcoming-first span { -webkit-line-clamp: 1; }

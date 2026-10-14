@@ -8,7 +8,7 @@ Aplicação Next.js para coordenar o calendário de ações dos cinco município
 - Limite de 3 reservas por município/dia; cada atividade ocupa 30 minutos e bloqueia apenas os 30 minutos seguintes para arrumação (ex.: reserva às 16:00 bloqueia 16:30; a próxima atividade pode começar às 17:00).
 - Reservas partilhadas em tempo real através do Cloud Firestore, quando configurado.
 - Modo local com `localStorage` para pré-visualização sem Firebase.
-- Ecrã público para a televisão do stand em `/ecran`, com área dinâmica «Próxima Ação», descrições e logótipos grandes em cada cartão, e rotação automática de seis atividades por página.
+- Ecrã público para a televisão do stand em `/agenda`, com área dinâmica «Próxima Ação», descrições e logótipos grandes em cada cartão, e rotação automática em páginas de quatro atividades do dia em destaque, com pré-visualização discreta dos dias seguintes.
 - Símbolo multicolorido do Pentágono Urbano como favicon e ícone de instalação em dispositivos móveis, com novos nomes de ficheiro para evitar cache dos ícones antigos.
 - Logótipos dos cinco municípios carregados dos URLs fornecidos, ampliados no seletor e especialmente no ecrã de apresentação, sem fundo branco artificial.
 - Verdana como fonte principal; campos de formulário com 16 px em mobile para evitar zoom automático do Safari.
@@ -87,9 +87,9 @@ No Vercel, abre o projeto → **Settings → Environment Variables** e adiciona 
 A página para a televisão fica numa rota diferente da aplicação de gestão:
 
 - Gestão: `https://pentagono-fitur.vercel.app/`
-- Ecrã do stand: `https://pentagono-fitur.vercel.app/ecran`
+- Ecrã do stand: `https://pentagono-fitur.vercel.app/agenda`
 
-A rota `/ecran` usa a mesma base de dados, apresenta as atividades em cartões grandes e roda automaticamente entre dias/páginas. É o mesmo deployment e domínio, mas um URL próprio. Depois do deploy, abre esse endereço no computador ligado ao ecrã e coloca o browser em ecrã inteiro.
+A rota `/agenda` usa a mesma base de dados, mantém o dia atual como destaque, mostra os dias seguintes numa faixa secundária e roda apenas entre páginas do dia em destaque quando existem mais de quatro atividades. É o mesmo deployment e domínio, mas um URL próprio. Depois do deploy, abre esse endereço no computador ligado ao ecrã e coloca o browser em ecrã inteiro.
 
 ## Favicon e instalação no telemóvel
 
@@ -135,7 +135,16 @@ Após publicar, confirma que o deployment está associado ao domínio Production
 
 - Todos os cinco municípios usam agora os respetivos URLs de logótipo fornecidos.
 - O seletor do município apresenta logótipos maiores e com fundo transparente.
-- A página `/ecran` apresenta a caixa dinâmica «Próxima Ação», que se atualiza ao receber reservas do Firestore e avança conforme a data/hora da atividade.
+- A página `/agenda` apresenta a caixa dinâmica «Próxima Ação», que se atualiza ao receber reservas do Firestore e avança conforme a data/hora da atividade.
 - As descrições preenchidas no campo «Descrição da ação» (guardado no campo `notes` para manter compatibilidade com reservas existentes) aparecem na próxima ação e nos cartões do ecrã.
 - Cada cartão inclui o logótipo em dimensão maior e uma marca de água colorida da identidade do município.
-- As agendas são divididas em páginas de seis atividades para dar espaço a logos e descrições.
+- As atividades do dia em destaque são divididas em páginas de quatro quando necessário; os próximos dias aparecem em pré-visualizações secundárias para manter o foco no dia atual.
+
+
+## V12 — hierarquia do ecrã público
+
+- O URL principal da apresentação é `/agenda`. A rota antiga `/ecran` redireciona para `/agenda` para preservar ligações existentes.
+- Durante os dias da FITUR, o cabeçalho «Hoje no Pentágono» é usado apenas para o dia real do evento. Antes da feira, o primeiro dia surge como abertura da agenda.
+- As atividades do dia em destaque são a zona principal. Os próximos dias aparecem numa faixa secundária, mais discreta, com logótipo, primeiro horário e indicação do número de ações reservadas.
+- Se um dia tiver mais de quatro atividades, o bloco principal roda entre páginas desse dia, sem trocar o foco para outro dia.
+- Logótipos horizontais de Braga, Guimarães e Famalicão recebem ampliação ótica para equilibrar a sua presença face aos logótipos mais verticais.

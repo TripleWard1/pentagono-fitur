@@ -316,7 +316,7 @@ export default function Home() {
           <span className="brand-divider" />
           <span className="brand-app"><strong>FITUR 2027</strong><small>Gestão de horários</small></span>
         </a>
-        <div className="topbar-meta"><span className={`event-status sync-${syncStatus}`}><i /> {syncStatus === "online" ? "Sincronizado" : syncStatus === "connecting" ? "A ligar à Firebase…" : syncStatus === "error" ? "Erro de sincronização" : "Modo local"}</span><span className="topbar-separator" /><a className="screen-link" href="/ecran" target="_blank" rel="noreferrer">Ecrã do stand <ChevronRight size={13} /></a><span className="topbar-separator" /> <span>Madrid · 19—24 jan. 2027</span></div>
+        <div className="topbar-meta"><span className={`event-status sync-${syncStatus}`}><i /> {syncStatus === "online" ? "Sincronizado" : syncStatus === "connecting" ? "A ligar à Firebase…" : syncStatus === "error" ? "Erro de sincronização" : "Modo local"}</span><span className="topbar-separator" /><a className="screen-link" href="/agenda" target="_blank" rel="noreferrer">Agenda do stand <ChevronRight size={13} /></a><span className="topbar-separator" /> <span>Madrid · 19—24 jan. 2027</span></div>
       </header>
 
       <div className="content-shell" id="main">

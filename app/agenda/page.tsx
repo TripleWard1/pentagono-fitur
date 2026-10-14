@@ -102,7 +102,7 @@ export default function StandAgendaScreen() {
         <div><p>{eyebrowText}</p><h1>{mainTitle}</h1><span className="screen-focus-note">{programmeFinished ? "Gracias por acompañar al Pentágono Urbano" : inFiturWeek ? "Programa del día · Actualizado en tiempo real" : "Programa del primer día · Actualizado en tiempo real"}</span></div>
         <div className="screen-title-aside">
           {programmeUrl && <div className="screen-qr-chip"><QrCode className="screen-qr-chip-code" value={programmeUrl} label="Código QR del programa completo" /><span><strong>Lleva el programa en tu móvil</strong><small>Escanea el código</small></span></div>}
-          <div className="screen-date-stamp"><CalendarDays size={22} /><span>19—24<strong>ENE 2027</strong></span></div>
+          <div className="screen-date-stamp"><CalendarDays size={22} /><span>19-24<strong>ENE 2027</strong></span></div>
         </div>
       </div>
 
@@ -111,7 +111,7 @@ export default function StandAgendaScreen() {
         <div className="screen-next-body">
           <img className="screen-next-watermark" src={liveMeta.logo} alt="" aria-hidden="true" />
           <div className={`screen-next-logo screen-next-logo-${townSlug(liveMeta.name)}`}><img src={liveMeta.logo} alt={`Logotipo de ${liveMeta.name}`} /><span>{liveMeta.name}</span></div>
-          <div className="screen-next-copy"><div className="screen-next-time"><strong>{liveNow.timeSlot}</strong><span>— {endTime(liveNow.timeSlot)}</span><span className="screen-live-pill"><i />EN DIRECTO</span></div><h2>{liveNow.actionName}</h2>{liveNow.notes?.trim() && <p><span>DESCRIPCIÓN</span>{liveNow.notes}</p>}</div>
+          <div className="screen-next-copy"><div className="screen-next-time"><strong>{liveNow.timeSlot}</strong><span>- {endTime(liveNow.timeSlot)}</span><span className="screen-live-pill"><i />EN DIRECTO</span></div><h2>{liveNow.actionName}</h2>{liveNow.notes?.trim() && <p><span>DESCRIPCIÓN</span>{liveNow.notes}</p>}</div>
           <ArrowRight className="screen-next-arrow" size={28} />
         </div>
         <div className="screen-live-progress" aria-hidden="true"><b style={{ width: `${Math.round(liveProgress(liveNow, now) * 100)}%` }} /></div>
@@ -122,7 +122,7 @@ export default function StandAgendaScreen() {
         {nextAction && nextMeta ? <div className="screen-next-body" style={{ "--town": nextMeta.color } as React.CSSProperties}>
           <img className="screen-next-watermark" src={nextMeta.logo} alt="" aria-hidden="true" />
           <div className={`screen-next-logo screen-next-logo-${townSlug(nextMeta.name)}`}><img src={nextMeta.logo} alt={`Logotipo de ${nextMeta.name}`} /><span>{nextMeta.name}</span></div>
-          <div className="screen-next-copy"><div className="screen-next-time"><strong>{nextAction.timeSlot}</strong><span>— {endTime(nextAction.timeSlot)}</span><i /><small>{displayDate(nextAction)}</small><span className="screen-countdown"><Clock3 size={14} />Empieza {formatIn(startDateTime(nextAction).getTime() - now.getTime())}</span></div><h2>{nextAction.actionName}</h2>{nextAction.notes?.trim() && <p><span>DESCRIPCIÓN</span>{nextAction.notes}</p>}</div>
+          <div className="screen-next-copy"><div className="screen-next-time"><strong>{nextAction.timeSlot}</strong><span>- {endTime(nextAction.timeSlot)}</span><i /><small>{displayDate(nextAction)}</small><span className="screen-countdown"><Clock3 size={14} />Empieza {formatIn(startDateTime(nextAction).getTime() - now.getTime())}</span></div><h2>{nextAction.actionName}</h2>{nextAction.notes?.trim() && <p><span>DESCRIPCIÓN</span>{nextAction.notes}</p>}</div>
           <ArrowRight className="screen-next-arrow" size={28} />
         </div> : <div className="screen-next-empty"><strong>{programmeFinished ? "Programa finalizado" : "Aún no hay próximas actividades programadas"}</strong><span>{programmeFinished ? "Gracias por visitar el Pentágono Urbano." : "Las nuevas reservas aparecerán automáticamente en esta pantalla."}</span></div>}
       </section>

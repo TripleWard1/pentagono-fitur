@@ -15,6 +15,12 @@ export const metadata: Metadata = {
       { url: '/pentagono-favicon-v9.png', type: 'image/png', sizes: '64x64' },
     ],
     shortcut: [{ url: '/favicon-pentagono-v9.ico', type: 'image/x-icon' }],
+    apple: [
+      { url: '/apple-touch-icon-pentagono-v11-180.png', type: 'image/png', sizes: '180x180' },
+      { url: '/apple-touch-icon-pentagono-v11-167.png', type: 'image/png', sizes: '167x167' },
+      { url: '/apple-touch-icon-pentagono-v11-152.png', type: 'image/png', sizes: '152x152' },
+      { url: '/apple-touch-icon-pentagono-v11-120.png', type: 'image/png', sizes: '120x120' },
+    ],
   },
 };
 
